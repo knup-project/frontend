@@ -17,9 +17,14 @@ import axios, {
 } from 'axios';
 
 import { ENV } from '@/shared/constants/env';
+import {
+  clearStoredTokens,
+  getStoredTokens,
+  updateStoredTokens,
+} from './token';
 
 // ─────────────────────────────────────────────
-// 인증 없이 호출 가능한 URL 패턴
+// URL 판별 헬퍼
 // ─────────────────────────────────────────────
 
 const PUBLIC_URLS = [
@@ -29,62 +34,22 @@ const PUBLIC_URLS = [
   '/sessions/join',
 ] as const;
 
-/** URL이 공개 API인지 확인 */
+/** 인증 헤더 불필요한 공개 URL */
 function isPublicUrl(url: string | undefined): boolean {
   if (!url) return false;
   return PUBLIC_URLS.some((pub) => url.includes(pub));
 }
 
-/**
- * sessionId/answer 패턴: Authorization 대신 X-Participant-Id 헤더 사용
- * 예: /sessions/abc123/answer
- */
+/** answer URL: Authorization 대신 X-Participant-Id 헤더 사용 */
 function isAnswerUrl(url: string | undefined): boolean {
   if (!url) return false;
   return /\/sessions\/[^/]+\/answer/.test(url);
 }
 
-// ─────────────────────────────────────────────
-// Leaderboard URL (인증 불필요)
-// ─────────────────────────────────────────────
-
+/** leaderboard URL: 인증 불필요 */
 function isLeaderboardUrl(url: string | undefined): boolean {
   if (!url) return false;
   return /\/sessions\/[^/]+\/leaderboard/.test(url);
-}
-
-// ─────────────────────────────────────────────
-// localStorage 토큰 헬퍼 (store 순환 참조 방지)
-// ─────────────────────────────────────────────
-
-const TOKEN_STORAGE_KEY = 'knup-auth';
-
-function getStoredTokens(): {
-  accessToken: string | null;
-  refreshToken: string | null;
-} {
-  if (typeof window === 'undefined') {
-    return { accessToken: null, refreshToken: null };
-  }
-  try {
-    const raw = localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (!raw) return { accessToken: null, refreshToken: null };
-    const parsed = JSON.parse(raw) as {
-      state?: { accessToken?: string; refreshToken?: string };
-    };
-    return {
-      accessToken: parsed.state?.accessToken ?? null,
-      refreshToken: parsed.state?.refreshToken ?? null,
-    };
-  } catch {
-    return { accessToken: null, refreshToken: null };
-  }
-}
-
-function clearStoredTokens(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-  }
 }
 
 // ─────────────────────────────────────────────
@@ -105,13 +70,7 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const url = config.url;
 
-    // 공개 URL은 Authorization 헤더 불필요
-    if (isPublicUrl(url) || isLeaderboardUrl(url)) {
-      return config;
-    }
-
-    // answer URL: X-Participant-Id 헤더는 각 API 함수에서 직접 주입 (여기서는 skip)
-    if (isAnswerUrl(url)) {
+    if (isPublicUrl(url) || isLeaderboardUrl(url) || isAnswerUrl(url)) {
       return config;
     }
 
@@ -126,19 +85,19 @@ apiClient.interceptors.request.use(
 );
 
 // ─────────────────────────────────────────────
-// 401 재발급 큐 패턴 (중복 refresh 방지)
+// 401 재발급 큐 (중복 refresh 방지)
 // ─────────────────────────────────────────────
 
 let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
+let refreshQueue: Array<(token: string) => void> = [];
 
-function subscribeTokenRefresh(cb: (token: string) => void): void {
-  refreshSubscribers.push(cb);
+function enqueueRefresh(cb: (token: string) => void): void {
+  refreshQueue.push(cb);
 }
 
-function onRefreshed(token: string): void {
-  refreshSubscribers.forEach((cb) => cb(token));
-  refreshSubscribers = [];
+function flushRefreshQueue(token: string): void {
+  refreshQueue.forEach((cb) => cb(token));
+  refreshQueue = [];
 }
 
 // ─────────────────────────────────────────────
@@ -165,16 +124,11 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true;
 
     if (isRefreshing) {
-      // 이미 재발급 중: 완료될 때까지 대기
       return new Promise((resolve) => {
-        subscribeTokenRefresh((newToken) => {
-          if (originalRequest.headers) {
-            (originalRequest.headers as Record<string, string>)[
-              'Authorization'
-            ] = `Bearer ${newToken}`;
-          } else {
-            originalRequest.headers = { Authorization: `Bearer ${newToken}` };
-          }
+        enqueueRefresh((newToken) => {
+          const headers = originalRequest.headers as Record<string, string> ?? {};
+          headers['Authorization'] = `Bearer ${newToken}`;
+          originalRequest.headers = headers;
           resolve(apiClient(originalRequest));
         });
       });
@@ -192,43 +146,18 @@ apiClient.interceptors.response.use(
         expiresIn: number;
       }>('/auth/refresh', { refreshToken });
 
-      // 새 토큰을 localStorage에 반영 (Zustand store는 상태를 읽을 뿐)
-      if (typeof window !== 'undefined') {
-        const raw = localStorage.getItem(TOKEN_STORAGE_KEY);
-        if (raw) {
-          try {
-            const parsed = JSON.parse(raw) as { state?: object };
-            parsed.state = {
-              ...(parsed.state ?? {}),
-              accessToken: data.accessToken,
-              refreshToken: data.refreshToken,
-              expiresIn: data.expiresIn,
-              isAuthenticated: true,
-            };
-            localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(parsed));
-          } catch {
-            // ignore
-          }
-        }
-      }
-
-      onRefreshed(data.accessToken);
+      updateStoredTokens(data);
+      flushRefreshQueue(data.accessToken);
       isRefreshing = false;
 
-      if (originalRequest.headers) {
-        (originalRequest.headers as Record<string, string>)[
-          'Authorization'
-        ] = `Bearer ${data.accessToken}`;
-      } else {
-        originalRequest.headers = {
-          Authorization: `Bearer ${data.accessToken}`,
-        };
-      }
+      const headers = originalRequest.headers as Record<string, string> ?? {};
+      headers['Authorization'] = `Bearer ${data.accessToken}`;
+      originalRequest.headers = headers;
 
       return apiClient(originalRequest);
     } catch (refreshError) {
       isRefreshing = false;
-      refreshSubscribers = [];
+      refreshQueue = [];
       clearStoredTokens();
       return Promise.reject(refreshError);
     }
@@ -236,9 +165,10 @@ apiClient.interceptors.response.use(
 );
 
 // ─────────────────────────────────────────────
-// 편의 헬퍼 (multipart/form-data 포함)
+// 편의 헬퍼
 // ─────────────────────────────────────────────
 
+/** multipart/form-data 요청용 FormData 생성 */
 export function createFormDataRequest(
   file: File,
   fields: Record<string, string>,

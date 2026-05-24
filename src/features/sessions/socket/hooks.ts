@@ -127,10 +127,9 @@ export function useSessionSocket(
   // ── 연결 ────────────────────────────────────
 
   useEffect(() => {
-    if (!enabled || !sessionId) {
-      cleanup();
-      return;
-    }
+    // enabled/sessionId 조건 미충족 시 그냥 반환
+    // (이전 effect 의 cleanup 반환값이 자동으로 연결을 정리함)
+    if (!enabled || !sessionId) return;
 
     setConnecting(true);
     setError(null);

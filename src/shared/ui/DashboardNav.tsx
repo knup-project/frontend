@@ -9,9 +9,10 @@ export function DashboardNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useLogout();
-  const nickname = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const handleLogout = () => {
+    if (!isAuthenticated) return;
     logout();
     router.push('/login');
   };

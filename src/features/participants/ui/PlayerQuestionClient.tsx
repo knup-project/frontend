@@ -61,20 +61,12 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
 
   const { mutate: submitAnswer, isPending: isSubmitting } = useSubmitAnswer();
 
-  // ── 타이머 ─────────────────────────────────
+  // ── 타이머 (activeQuestion 변경 시 인터벌 시작) ────────────────
 
   useEffect(() => {
     if (phase !== 'question' || !activeQuestion) return;
 
-    const elapsed = Math.floor((Date.now() - activeQuestion.startedAt) / 1000);
-    const remaining = Math.max(activeQuestion.event.question.timeLimit - elapsed, 0);
-    setTimeLeft(remaining);
-
-    if (remaining === 0) {
-      setPhase('submitted');
-      return;
-    }
-
+    // timeLeft는 handleQuestion에서 이미 설정됨 — effect body에서 setState 하지 않음
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -103,7 +95,12 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    setActiveQuestion({ event, startedAt: Date.now() });
+    const startedAt = Date.now();
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    const initialTime = Math.max(event.question.timeLimit - elapsed, 0);
+
+    setActiveQuestion({ event, startedAt });
+    setTimeLeft(initialTime);   // 이벤트 핸들러에서 설정 (effect 외부)
     setSelectedAnswer(null);
     setShortAnswer('');
     setPhase('question');

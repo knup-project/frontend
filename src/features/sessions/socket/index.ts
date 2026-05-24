@@ -161,7 +161,7 @@ export function createSessionStompClient(options: {
       onConnectError(error);
     },
 
-    onWebSocketError: (_event) => {
+    onWebSocketError: () => {
       const error = new Error('WebSocket 연결 실패');
       callbacks.onError?.(error);
       onConnectError(error);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useParticipantStore } from '../store';
 import { useSessionSocket } from '@/features/sessions/socket/hooks';
@@ -43,18 +43,16 @@ export default function PlayerResultClient({ sessionId }: Props) {
     participantId: s.participantId,
   }));
 
-  const [result, setResult] = useState<AnswerResultResponse | null>(null);
-
-  // sessionStorage에서 결과 읽기
-  useEffect(() => {
+  // lazy initializer로 마운트 시 1회만 읽기 (effect 내 setState 회피)
+  const [result] = useState<AnswerResultResponse | null>(() => {
     const stored = readStoredResult();
-    setResult(stored);
     clearStoredResult();
-  }, []);
+    return stored;
+  });
 
   // WebSocket: 다음 문제 또는 세션 종료 수신
   const handleQuestion = useCallback(
-    (_event: SessionQuestionEvent) => {
+    (_e: SessionQuestionEvent) => {
       router.push(`/play/${sessionId}/question`);
     },
     [router, sessionId],

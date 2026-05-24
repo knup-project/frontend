@@ -1,16 +1,15 @@
-/**
- * 세션 대기실 (호스트)
- * 사용 훅: useSession, useSessionSocket, useStartSession
- */
-export default function HostWaitingPage({
+import { HostWaitingClient } from '@/features/sessions/ui/HostWaitingClient';
+import { AuthGuard } from '@/shared/ui/AuthGuard';
+
+export default async function HostWaitingPage({
   params,
 }: {
   params: Promise<{ sessionId: string }>;
 }) {
+  const { sessionId } = await params;
   return (
-    <main className="flex-1 p-4 md:p-8">
-      {/* TODO: ParticipantList, PinDisplay, StartButton 컴포넌트 */}
-      <p style={{ color: '#6a6a6a' }}>세션 대기실 (호스트)</p>
-    </main>
+    <AuthGuard>
+      <HostWaitingClient sessionId={sessionId} />
+    </AuthGuard>
   );
 }

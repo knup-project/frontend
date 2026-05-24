@@ -1,16 +1,15 @@
-/**
- * 세션 진행 (호스트)
- * 사용 훅: useSession, useSessionSocket, useNextQuestion, useLeaderboard
- */
-export default function HostPlayPage({
+import { HostPlayClient } from '@/features/sessions/ui/HostPlayClient';
+import { AuthGuard } from '@/shared/ui/AuthGuard';
+
+export default async function HostPlayPage({
   params,
 }: {
   params: Promise<{ sessionId: string }>;
 }) {
+  const { sessionId } = await params;
   return (
-    <main className="flex-1 p-4 md:p-8">
-      {/* TODO: QuestionDisplay, AnswerStats, LiveLeaderboard 컴포넌트 */}
-      <p style={{ color: '#6a6a6a' }}>세션 진행 화면 (호스트)</p>
-    </main>
+    <AuthGuard>
+      <HostPlayClient sessionId={sessionId} />
+    </AuthGuard>
   );
 }

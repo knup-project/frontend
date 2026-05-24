@@ -17,8 +17,7 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: latest
+        # package.json의 packageManager 필드에서 버전을 자동으로 읽음
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

@@ -1,50 +1,37 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useParticipantStore } from '../store';
 import { useSubmitAnswer } from '../hooks';
+import { useQuestionTimer } from '../hooks/useQuestionTimer';
+import { storeResult } from '../lib/resultStorage';
+import { QuestionOptions } from './QuestionOptions';
 import { useSessionSocket } from '@/features/sessions/socket/hooks';
 import type {
   AnswerResultResponse,
-  QuestionType,
   SessionQuestionEvent,
   SessionStatusEvent,
 } from '@/shared/types/api';
 
 // ─────────────────────────────────────────────
-// sessionStorage 헬퍼 — result 페이지로 데이터 전달
-// ─────────────────────────────────────────────
-
-const RESULT_STORAGE_KEY = 'knup-question-result';
-
-function storeResult(result: AnswerResultResponse) {
-  if (typeof window !== 'undefined') {
-    sessionStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(result));
-  }
-}
-
-// ─────────────────────────────────────────────
-// 답변 옵션 색상 (Kahoot 스타일)
-// ─────────────────────────────────────────────
-
-const OPTION_COLORS = ['#e21b3c', '#1368ce', '#d89e00', '#26890c'];
-const OPTION_SHAPES = ['▲', '◆', '●', '★'];
-
-// ─────────────────────────────────────────────
-// 컴포넌트
+// 타입
 // ─────────────────────────────────────────────
 
 type Phase = 'waiting' | 'question' | 'submitted';
 
 interface ActiveQuestion {
   event: SessionQuestionEvent;
-  startedAt: number; // Date.now()
+  startedAt: number;
 }
 
 interface Props {
   sessionId: string;
 }
+
+// ─────────────────────────────────────────────
+// 컴포넌트
+// ─────────────────────────────────────────────
 
 export default function PlayerQuestionClient({ sessionId }: Props) {
   const router = useRouter();
@@ -57,50 +44,27 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [shortAnswer, setShortAnswer] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { mutate: submitAnswer, isPending: isSubmitting } = useSubmitAnswer();
 
-  // ── 타이머 (activeQuestion 변경 시 인터벌 시작) ────────────────
+  // ── 카운트다운 타이머 (훅으로 분리) ───────────
 
-  useEffect(() => {
-    if (phase !== 'question' || !activeQuestion) return;
-
-    // timeLeft는 handleQuestion에서 이미 설정됨 — effect body에서 setState 하지 않음
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          timerRef.current = null;
-          setPhase('submitted');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeQuestion]);
+  useQuestionTimer({
+    activeQuestion: activeQuestion
+      ? { startedAt: activeQuestion.startedAt, timeLimit: activeQuestion.event.question.timeLimit }
+      : null,
+    setTimeLeft,
+    onTimeout: () => setPhase('submitted'),
+  });
 
   // ── WebSocket 콜백 ─────────────────────────
 
   const handleQuestion = useCallback((event: SessionQuestionEvent) => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
     const startedAt = Date.now();
-    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-    const initialTime = Math.max(event.question.timeLimit - elapsed, 0);
+    const initialTime = Math.max(event.question.timeLimit, 0);
 
     setActiveQuestion({ event, startedAt });
-    setTimeLeft(initialTime);   // 이벤트 핸들러에서 설정 (effect 외부)
+    setTimeLeft(initialTime);
     setSelectedAnswer(null);
     setShortAnswer('');
     setPhase('question');
@@ -127,10 +91,7 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
 
   function submitWithAnswer(answer: string) {
     if (!activeQuestion || isSubmitting) return;
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+
     setSelectedAnswer(answer);
     setPhase('submitted');
 
@@ -148,7 +109,6 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
           router.push(`/play/${sessionId}/result`);
         },
         onError: () => {
-          // 제출 실패해도 result 페이지로 이동 (빈 결과)
           router.push(`/play/${sessionId}/result`);
         },
       },
@@ -160,7 +120,7 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
     submitWithAnswer(answer);
   }
 
-  function handleShortAnswerSubmit(e: React.FormEvent) {
+  function handleShortAnswerSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!shortAnswer.trim() || phase !== 'question') return;
     submitWithAnswer(shortAnswer.trim());
@@ -170,54 +130,14 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
   // 렌더링
   // ─────────────────────────────────────────
 
-  // 대기 화면
   if (phase === 'waiting') {
-    return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center p-6"
-        style={{
-          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-        }}
-      >
-        <div className="text-center">
-          <div className="text-5xl mb-6 animate-pulse">🎯</div>
-          <h2 className="text-white text-2xl font-bold mb-2">다음 문제를 기다리는 중</h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)' }}>호스트가 문제를 시작하면 나타납니다</p>
-        </div>
-      </div>
-    );
+    return <WaitingScreen />;
   }
 
-  // 제출 완료 화면 (결과 대기)
   if (phase === 'submitted') {
-    return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center p-6"
-        style={{
-          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-        }}
-      >
-        <div className="text-center">
-          <div className="text-5xl mb-6">
-            {selectedAnswer ? '✅' : '⏱️'}
-          </div>
-          <h2 className="text-white text-2xl font-bold mb-2">
-            {selectedAnswer ? '제출 완료!' : '시간 종료!'}
-          </h2>
-          {selectedAnswer && (
-            <p style={{ color: 'rgba(255,255,255,0.7)' }} className="text-lg">
-              선택한 답: <span className="font-semibold text-white">{selectedAnswer}</span>
-            </p>
-          )}
-          <p style={{ color: 'rgba(255,255,255,0.5)' }} className="mt-2">
-            결과를 불러오는 중...
-          </p>
-        </div>
-      </div>
-    );
+    return <SubmittedScreen selectedAnswer={selectedAnswer} />;
   }
 
-  // 문제 화면
   if (!activeQuestion) return null;
 
   const { question, questionIndex, totalQuestions } = activeQuestion.event;
@@ -226,67 +146,27 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-      }}
+      style={{ background: DARK_BG }}
     >
-      {/* 헤더: 문제 번호 + 타이머 */}
+      {/* 헤더: 진행률 바 + 문제 번호 + 타이머 + 점수 */}
       <div className="px-6 pt-6 pb-4">
-        {/* 진행률 바 */}
-        <div
-          className="w-full h-2 rounded-full mb-4"
-          style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
-        >
-          <div
-            className="h-2 rounded-full transition-all duration-1000"
-            style={{
-              width: `${timerPercent}%`,
-              backgroundColor:
-                timerPercent > 50
-                  ? 'var(--color-primary)'
-                  : timerPercent > 20
-                  ? '#f59e0b'
-                  : '#ef4444',
-            }}
-          />
-        </div>
+        <TimerBar percent={timerPercent} />
 
-        <div className="flex items-center justify-between">
-          <span
-            className="text-sm font-medium"
-            style={{ color: 'rgba(255,255,255,0.6)' }}
-          >
+        <div className="flex items-center justify-between mt-4">
+          <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>
             {questionIndex + 1} / {totalQuestions}
           </span>
-          {/* 타이머 */}
-          <div
-            className="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-lg"
-            style={{
-              backgroundColor:
-                timeLeft <= 5 ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)',
-              color: timeLeft <= 5 ? '#fca5a5' : 'white',
-            }}
-          >
-            ⏱ {timeLeft}
-          </div>
-          <span
-            className="text-sm font-medium"
-            style={{ color: 'rgba(255,255,255,0.6)' }}
-          >
+          <TimerBadge timeLeft={timeLeft} />
+          <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>
             {question.points}점
           </span>
         </div>
       </div>
 
-      {/* 문제 */}
+      {/* 문제 본문 */}
       <div className="px-6 py-4 flex-shrink-0">
-        <div
-          className="rounded-2xl p-6 text-center"
-          style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
-        >
-          <p className="text-white text-xl font-bold leading-relaxed">
-            {question.content}
-          </p>
+        <div className="rounded-2xl p-6 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+          <p className="text-white text-xl font-bold leading-relaxed">{question.content}</p>
         </div>
       </div>
 
@@ -295,11 +175,11 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
         <QuestionOptions
           type={question.type}
           options={question.options}
-          shortAnswer={shortAnswer}
-          onShortAnswerChange={setShortAnswer}
-          onOptionClick={handleOptionClick}
-          onShortAnswerSubmit={handleShortAnswerSubmit}
           selectedAnswer={selectedAnswer}
+          shortAnswer={shortAnswer}
+          onOptionClick={handleOptionClick}
+          onShortAnswerChange={setShortAnswer}
+          onShortAnswerSubmit={handleShortAnswerSubmit}
         />
       </div>
     </div>
@@ -307,112 +187,70 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
 }
 
 // ─────────────────────────────────────────────
-// 답변 옵션 서브컴포넌트
+// 공통 상수
 // ─────────────────────────────────────────────
 
-interface QuestionOptionsProps {
-  type: QuestionType;
-  options?: string[];
-  shortAnswer: string;
-  onShortAnswerChange: (v: string) => void;
-  onOptionClick: (answer: string) => void;
-  onShortAnswerSubmit: (e: React.FormEvent) => void;
-  selectedAnswer: string | null;
+const DARK_BG = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
+
+// ─────────────────────────────────────────────
+// 화면 단계별 소형 컴포넌트
+// ─────────────────────────────────────────────
+
+function WaitingScreen() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: DARK_BG }}>
+      <div className="text-center">
+        <div className="text-5xl mb-6 animate-pulse">🎯</div>
+        <h2 className="text-white text-2xl font-bold mb-2">다음 문제를 기다리는 중</h2>
+        <p style={{ color: 'rgba(255,255,255,0.5)' }}>호스트가 문제를 시작하면 나타납니다</p>
+      </div>
+    </div>
+  );
 }
 
-function QuestionOptions({
-  type,
-  options,
-  shortAnswer,
-  onShortAnswerChange,
-  onOptionClick,
-  onShortAnswerSubmit,
-  selectedAnswer,
-}: QuestionOptionsProps) {
-  if (type === 'MULTIPLE_CHOICE' && options) {
-    return (
-      <div className="grid grid-cols-2 gap-3 h-full">
-        {options.map((opt, idx) => {
-          const color = OPTION_COLORS[idx % OPTION_COLORS.length];
-          const shape = OPTION_SHAPES[idx % OPTION_SHAPES.length];
-          const isSelected = selectedAnswer === opt;
-
-          return (
-            <button
-              key={idx}
-              onClick={() => onOptionClick(opt)}
-              disabled={!!selectedAnswer}
-              className="relative flex flex-col items-center justify-center gap-2 rounded-2xl p-4 font-semibold text-white transition-all"
-              style={{
-                backgroundColor: color,
-                opacity: selectedAnswer && !isSelected ? 0.5 : 1,
-                transform: isSelected ? 'scale(0.97)' : 'scale(1)',
-                minHeight: 100,
-              }}
-            >
-              <span className="text-2xl">{shape}</span>
-              <span className="text-sm text-center leading-tight">{opt}</span>
-              {isSelected && (
-                <span className="absolute top-2 right-2 text-lg">✓</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  if (type === 'TRUE_FALSE') {
-    return (
-      <div className="grid grid-cols-2 gap-4 h-full max-h-52">
-        {(['True', 'False'] as const).map((val, idx) => {
-          const color = OPTION_COLORS[idx];
-          const isSelected = selectedAnswer === val;
-          return (
-            <button
-              key={val}
-              onClick={() => onOptionClick(val)}
-              disabled={!!selectedAnswer}
-              className="flex flex-col items-center justify-center gap-3 rounded-2xl font-bold text-white text-2xl transition-all"
-              style={{
-                backgroundColor: color,
-                opacity: selectedAnswer && !isSelected ? 0.5 : 1,
-                minHeight: 120,
-              }}
-            >
-              <span className="text-4xl">{val === 'True' ? '⭕' : '❌'}</span>
-              <span>{val}</span>
-              {isSelected && <span className="text-lg">✓</span>}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // SHORT_ANSWER
+function SubmittedScreen({ selectedAnswer }: { selectedAnswer: string | null }) {
   return (
-    <form
-      onSubmit={onShortAnswerSubmit}
-      className="flex flex-col gap-4 mt-4"
-    >
-      <input
-        type="text"
-        value={shortAnswer}
-        onChange={(e) => onShortAnswerChange(e.target.value)}
-        placeholder="답을 입력하세요"
-        disabled={!!selectedAnswer}
-        className="input-text text-center text-lg"
-        autoComplete="off"
-        autoFocus
+    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: DARK_BG }}>
+      <div className="text-center">
+        <div className="text-5xl mb-6">{selectedAnswer ? '✅' : '⏱️'}</div>
+        <h2 className="text-white text-2xl font-bold mb-2">
+          {selectedAnswer ? '제출 완료!' : '시간 종료!'}
+        </h2>
+        {selectedAnswer && (
+          <p style={{ color: 'rgba(255,255,255,0.7)' }} className="text-lg">
+            선택한 답: <span className="font-semibold text-white">{selectedAnswer}</span>
+          </p>
+        )}
+        <p style={{ color: 'rgba(255,255,255,0.5)' }} className="mt-2">결과를 불러오는 중...</p>
+      </div>
+    </div>
+  );
+}
+
+function TimerBar({ percent }: { percent: number }) {
+  const color =
+    percent > 50 ? 'var(--color-primary)' : percent > 20 ? '#f59e0b' : '#ef4444';
+  return (
+    <div className="w-full h-2 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
+      <div
+        className="h-2 rounded-full transition-all duration-1000"
+        style={{ width: `${percent}%`, backgroundColor: color }}
       />
-      <button
-        type="submit"
-        disabled={!shortAnswer.trim() || !!selectedAnswer}
-        className="btn-primary"
-      >
-        제출
-      </button>
-    </form>
+    </div>
+  );
+}
+
+function TimerBadge({ timeLeft }: { timeLeft: number }) {
+  const isUrgent = timeLeft <= 5;
+  return (
+    <div
+      className="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-lg"
+      style={{
+        backgroundColor: isUrgent ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)',
+        color: isUrgent ? '#fca5a5' : 'white',
+      }}
+    >
+      ⏱ {timeLeft}
+    </div>
   );
 }

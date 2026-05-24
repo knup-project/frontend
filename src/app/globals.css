@@ -1,26 +1,205 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────
+   Airbnb 디자인 토큰 (design.md 기반)
+   ───────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand */
+  --color-primary: #ff385c;
+  --color-primary-active: #e00b41;
+  --color-primary-disabled: #ffd1da;
+
+  /* Surface */
+  --color-canvas: #ffffff;
+  --color-surface-soft: #f7f7f7;
+  --color-surface-strong: #f2f2f2;
+
+  /* Border */
+  --color-hairline: #dddddd;
+  --color-hairline-soft: #ebebeb;
+  --color-border-strong: #c1c1c1;
+
+  /* Text */
+  --color-ink: #222222;
+  --color-body: #3f3f3f;
+  --color-muted: #6a6a6a;
+  --color-muted-soft: #929292;
+  --color-on-primary: #ffffff;
+
+  /* Semantic */
+  --color-error: #c13515;
+  --color-error-hover: #b32505;
+
+  /* Spacing */
+  --spacing-xxs: 2px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-base: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  --spacing-section: 64px;
+
+  /* Shadow (단일 elevation tier) */
+  --shadow-float:
+    rgba(0, 0, 0, 0.02) 0 0 0 1px,
+    rgba(0, 0, 0, 0.04) 0 2px 6px 0,
+    rgba(0, 0, 0, 0.1) 0 4px 8px 0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ─────────────────────────────────────────────
+   Tailwind v4 테마 확장
+   ───────────────────────────────────────────── */
+
+@theme {
+  /* 색상 */
+  --color-primary: var(--color-primary);
+  --color-primary-active: var(--color-primary-active);
+  --color-primary-disabled: var(--color-primary-disabled);
+
+  --color-canvas: var(--color-canvas);
+  --color-surface-soft: var(--color-surface-soft);
+  --color-surface-strong: var(--color-surface-strong);
+
+  --color-hairline: var(--color-hairline);
+  --color-hairline-soft: var(--color-hairline-soft);
+  --color-border-strong: var(--color-border-strong);
+
+  --color-ink: var(--color-ink);
+  --color-body-text: var(--color-body);
+  --color-muted: var(--color-muted);
+  --color-muted-soft: var(--color-muted-soft);
+  --color-on-primary: var(--color-on-primary);
+
+  --color-error: var(--color-error);
+
+  /* 폰트 — Inter (Airbnb Cereal 대체) */
+  --font-sans: Inter, Circular, -apple-system, system-ui, Roboto, "Helvetica Neue", sans-serif;
+
+  /* 그림자 */
+  --shadow-float: var(--shadow-float);
+
+  /* 반경 */
+  --radius-sm: 8px;      /* 버튼 */
+  --radius-md: 14px;     /* 카드 */
+  --radius-full: 9999px; /* 검색바, 알약 버튼 */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ─────────────────────────────────────────────
+   기본 스타일
+   ───────────────────────────────────────────── */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─────────────────────────────────────────────
+   컴포넌트 유틸리티 (Airbnb 디자인 시스템)
+   ───────────────────────────────────────────── */
+
+@layer components {
+  /* 버튼 - Primary (Rausch) */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    padding: 14px 24px;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+  }
+  .btn-primary:hover {
+    background-color: var(--color-primary-active);
+  }
+  .btn-primary:disabled {
+    background-color: var(--color-primary-disabled);
+    cursor: not-allowed;
+  }
+
+  /* 버튼 - Secondary */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    padding: 14px 24px;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-ink);
+    cursor: pointer;
+    transition: background-color 150ms ease;
+  }
+  .btn-secondary:hover {
+    background-color: var(--color-surface-soft);
+  }
+
+  /* 버튼 - Pill (Rausch) */
+  .btn-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-full);
+    border: none;
+    cursor: pointer;
+  }
+
+  /* 텍스트 입력 */
+  .input-text {
+    width: 100%;
+    height: 56px;
+    padding: 14px 12px;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-size: 16px;
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: border-color 150ms ease, border-width 150ms ease;
+  }
+  .input-text:focus {
+    border-width: 2px;
+    border-color: var(--color-ink);
+  }
+  .input-text::placeholder {
+    color: var(--color-muted);
+  }
+
+  /* 카드 */
+  .card {
+    background-color: var(--color-canvas);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-hairline);
+    overflow: hidden;
+  }
+  .card:hover {
+    box-shadow: var(--shadow-float);
+  }
+
+  /* 섹션 여백 */
+  .section-padding {
+    padding-top: var(--spacing-section);
+    padding-bottom: var(--spacing-section);
+  }
 }

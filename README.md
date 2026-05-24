@@ -55,18 +55,6 @@ src/
     ├── leaderboard/        # 실시간 순위
     └── ai/                 # AI 퀴즈 생성
 ```
-
----
-
-## ⚙️ 환경 설정
-
-프로젝트 루트에 `.env.local` 파일을 생성하세요.
-
-```env
-NEXT_PUBLIC_API_BASE_URL=https://api.knup.site/api/v1
-NEXT_PUBLIC_WS_URL=ws://api.knup.site/ws
-```
-
 ---
 
 ## 🚀 개발 시작
@@ -115,12 +103,3 @@ docs(scope): 문서
 style(scope): 포맷
 test(scope): 테스트
 ```
-
----
-
-## 🔌 API
-
-| 구분 | 주소 |
-|------|------|
-| REST API | `https://api.knup.site/api/v1` |
-| WebSocket | `ws://api.knup.site/ws` |

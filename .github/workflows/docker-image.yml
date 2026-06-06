@@ -1,0 +1,76 @@
+name: Build & Push Frontend Image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    name: Build and push to ghcr.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/knup-project/frontend
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # NEXT_PUBLIC_* are baked into the client bundle at build time.
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=https://144-24-92-17.sslip.io/api/v1
+            NEXT_PUBLIC_WS_URL=wss://144-24-92-17.sslip.io/ws
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to VM
+    needs: image
+    runs-on: ubuntu-latest
+    steps:
+      # The frontend package is private; rather than require a public toggle or a
+      # VM-side token, the runner (which can pull what it just built) ships the
+      # image to the VM over SSH with `docker save | docker load`.
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ship image to the VM and roll the stack
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          printf '%s\n' "$DEPLOY_SSH_KEY" > deploy_key
+          chmod 600 deploy_key
+          docker pull ghcr.io/knup-project/frontend:latest
+          docker save ghcr.io/knup-project/frontend:latest | gzip \
+            | ssh -i deploy_key -o StrictHostKeyChecking=accept-new ubuntu@"$DEPLOY_HOST" \
+                'gunzip | docker load && cd /opt/knup && docker compose up -d && docker image prune -f'

@@ -1,0 +1,9 @@
+# Frontend stack on the OCI frontend VM (158.180.94.80).
+# Image is delivered by CI (docker load over SSH), so no registry auth needed.
+# nginx on the host fronts this on 443 -> 127.0.0.1:3000.
+services:
+  frontend:
+    image: ghcr.io/knup-project/frontend:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"

@@ -1,20 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useLogout } from '@/features/auth/hooks';
 import { useAuthStore } from '@/features/auth/store';
 
 export function DashboardNav() {
   const pathname = usePathname();
-  const router = useRouter();
   const { logout } = useLogout();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const handleLogout = () => {
     if (!isAuthenticated) return;
-    logout();
-    router.push('/login');
+    // logout() 내부에서 서버 세션 무효화 + store 정리 + /login 이동을 처리합니다.
+    void logout();
   };
 
   const navItems = [

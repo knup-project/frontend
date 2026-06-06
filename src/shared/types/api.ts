@@ -45,10 +45,11 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface TokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
+export interface AuthResponse {
+  id: number;
+  email: string;
+  nickname: string;
+  createdAt: string;
 }
 
 // ─────────────────────────────────────────────

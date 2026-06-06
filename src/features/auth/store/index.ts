@@ -2,52 +2,46 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { TokenResponse } from '@/shared/types/api';
+import type { AuthResponse } from '@/shared/types/api';
 
 interface AuthState {
-  accessToken: string | null;
-  refreshToken: string | null;
-  expiresIn: number | null;
+  user: AuthResponse | null;
   isAuthenticated: boolean;
 }
 
 interface AuthActions {
-  setTokens: (tokens: TokenResponse) => void;
-  clearTokens: () => void;
+  setUser: (user: AuthResponse) => void;
+  clear: () => void;
 }
 
 type AuthStore = AuthState & AuthActions;
 
 const initialState: AuthState = {
-  accessToken: null,
-  refreshToken: null,
-  expiresIn: null,
+  user: null,
   isAuthenticated: false,
 };
 
 /**
  * 인증 스토어 (localStorage persist)
  *
- * 스토리지 키: "knup-auth" (shared/api/client.ts 의 TOKEN_STORAGE_KEY 와 동일)
+ * 스토리지 키: "knup-auth"
  *
- * 보안 참고:
- *   localStorage 는 XSS 공격에 취약합니다.
- *   프로덕션에서는 httpOnly cookie 기반 저장을 권장합니다.
+ * 세션 쿠키(JSESSIONID, httpOnly)는 브라우저가 관리하므로 토큰을 저장하지 않습니다.
+ * 여기에는 로그인 사용자 정보와 인증 여부만 보관하며,
+ * 앱 로드 시 GET /auth/me 로 실제 세션 유효성을 검증합니다.
  */
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
       ...initialState,
 
-      setTokens: (tokens: TokenResponse) =>
+      setUser: (user: AuthResponse) =>
         set({
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-          expiresIn: tokens.expiresIn,
+          user,
           isAuthenticated: true,
         }),
 
-      clearTokens: () => {
+      clear: () => {
         set(initialState);
         if (typeof window !== 'undefined') {
           localStorage.removeItem('knup-auth');
@@ -57,9 +51,7 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: 'knup-auth',
       partialize: (state) => ({
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-        expiresIn: state.expiresIn,
+        user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
     },

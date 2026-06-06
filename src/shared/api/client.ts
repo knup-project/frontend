@@ -1,27 +1,21 @@
 /**
  * src/shared/api/client.ts
  *
- * Axios 인스턴스 + 인터셉터 (토큰 자동 첨부 / 401 재발급 / 재시도)
+ * Axios 인스턴스 + 인터셉터 (세션 쿠키 기반 인증 / 401 처리)
  *
- * 보안 참고사항:
- *   현재 accessToken / refreshToken은 localStorage에 저장됩니다.
- *   프로덕션에서는 XSS 공격 위험을 줄이기 위해
- *   httpOnly cookie 기반 저장을 권장합니다.
+ * 인증 방식:
+ *   서버(Spring HttpSession)가 발급한 세션 쿠키(JSESSIONID)를 사용합니다.
+ *   쿠키는 httpOnly 이므로 JS 에서 접근할 수 없으며, withCredentials: true 일 때
+ *   브라우저가 자동으로 요청에 첨부합니다.
  */
 
 import axios, {
   AxiosError,
   type AxiosInstance,
-  type AxiosRequestConfig,
-  type InternalAxiosRequestConfig,
 } from 'axios';
 
 import { ENV } from '@/shared/constants/env';
-import {
-  clearStoredTokens,
-  getStoredTokens,
-  updateStoredTokens,
-} from './token';
+import { useAuthStore } from '@/features/auth/store';
 
 // ─────────────────────────────────────────────
 // URL 판별 헬퍼
@@ -30,17 +24,16 @@ import {
 const PUBLIC_URLS = [
   '/auth/signup',
   '/auth/login',
-  '/auth/refresh',
   '/sessions/join',
 ] as const;
 
-/** 인증 헤더 불필요한 공개 URL */
+/** 인증 불필요한 공개 URL */
 function isPublicUrl(url: string | undefined): boolean {
   if (!url) return false;
   return PUBLIC_URLS.some((pub) => url.includes(pub));
 }
 
-/** answer URL: Authorization 대신 X-Participant-Id 헤더 사용 */
+/** answer URL: 세션 쿠키 대신 X-Participant-Id 헤더로 참가자를 식별 */
 function isAnswerUrl(url: string | undefined): boolean {
   if (!url) return false;
   return /\/sessions\/[^/]+\/answer/.test(url);
@@ -52,6 +45,17 @@ function isLeaderboardUrl(url: string | undefined): boolean {
   return /\/sessions\/[^/]+\/leaderboard/.test(url);
 }
 
+/**
+ * 세션 복원(hydration) 조회 URL
+ *
+ * 401 이면 "로그아웃 상태"를 의미하므로 store 만 비우고
+ * 강제 리다이렉트는 하지 않습니다. (보호 경로 이동은 AuthGuard 가 담당)
+ */
+function isMeUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  return url.includes('/auth/me');
+}
+
 // ─────────────────────────────────────────────
 // Axios 인스턴스
 // ─────────────────────────────────────────────
@@ -60,107 +64,42 @@ export const apiClient: AxiosInstance = axios.create({
   baseURL: ENV.API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 10_000,
+  // 세션 쿠키(JSESSIONID)를 모든 요청에 자동 첨부
+  withCredentials: true,
 });
 
 // ─────────────────────────────────────────────
-// Request 인터셉터: 토큰 자동 첨부
+// Response 인터셉터: 인증 요청 401 처리
 // ─────────────────────────────────────────────
-
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const url = config.url;
-
-    if (isPublicUrl(url) || isLeaderboardUrl(url) || isAnswerUrl(url)) {
-      return config;
-    }
-
-    const { accessToken } = getStoredTokens();
-    if (accessToken) {
-      config.headers['Authorization'] = `Bearer ${accessToken}`;
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
-
-// ─────────────────────────────────────────────
-// 401 재발급 큐 (중복 refresh 방지)
-// ─────────────────────────────────────────────
-
-let isRefreshing = false;
-let refreshQueue: Array<(token: string) => void> = [];
-
-function enqueueRefresh(cb: (token: string) => void): void {
-  refreshQueue.push(cb);
-}
-
-function flushRefreshQueue(token: string): void {
-  refreshQueue.forEach((cb) => cb(token));
-  refreshQueue = [];
-}
-
-// ─────────────────────────────────────────────
-// Response 인터셉터: 401 처리 + refresh 재시도
-// ─────────────────────────────────────────────
+//
+// 세션 쿠키가 만료/무효이면 서버가 401 을 응답합니다.
+// 토큰 재발급이 없으므로 auth store 를 비우고 /login 으로 이동합니다.
 
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as AxiosRequestConfig & {
-      _retry?: boolean;
-    };
+  (error: AxiosError) => {
+    const url = error.config?.url;
 
-    if (error.response?.status !== 401 || originalRequest._retry) {
-      return Promise.reject(error);
+    if (error.response?.status === 401) {
+      // 세션 복원 조회(/auth/me)는 store 만 비우고 호출부가 처리하도록 둡니다.
+      if (isMeUrl(url)) {
+        useAuthStore.getState().clear();
+        return Promise.reject(error);
+      }
+
+      // 공개·리더보드·answer 요청은 세션 인증 대상이 아니므로 그대로 전달
+      const isAuthenticatedRequest =
+        !isPublicUrl(url) && !isLeaderboardUrl(url) && !isAnswerUrl(url);
+
+      if (isAuthenticatedRequest) {
+        useAuthStore.getState().clear();
+        if (typeof window !== 'undefined') {
+          window.location.assign('/login');
+        }
+      }
     }
 
-    // refresh 엔드포인트 자체가 401이면 → 로그아웃
-    if (isPublicUrl(originalRequest.url)) {
-      clearStoredTokens();
-      return Promise.reject(error);
-    }
-
-    originalRequest._retry = true;
-
-    if (isRefreshing) {
-      return new Promise((resolve) => {
-        enqueueRefresh((newToken) => {
-          const headers = originalRequest.headers as Record<string, string> ?? {};
-          headers['Authorization'] = `Bearer ${newToken}`;
-          originalRequest.headers = headers;
-          resolve(apiClient(originalRequest));
-        });
-      });
-    }
-
-    isRefreshing = true;
-
-    try {
-      const { refreshToken } = getStoredTokens();
-      if (!refreshToken) throw new Error('No refresh token');
-
-      const { data } = await apiClient.post<{
-        accessToken: string;
-        refreshToken: string;
-        expiresIn: number;
-      }>('/auth/refresh', { refreshToken });
-
-      updateStoredTokens(data);
-      flushRefreshQueue(data.accessToken);
-      isRefreshing = false;
-
-      const headers = originalRequest.headers as Record<string, string> ?? {};
-      headers['Authorization'] = `Bearer ${data.accessToken}`;
-      originalRequest.headers = headers;
-
-      return apiClient(originalRequest);
-    } catch (refreshError) {
-      isRefreshing = false;
-      refreshQueue = [];
-      clearStoredTokens();
-      return Promise.reject(refreshError);
-    }
+    return Promise.reject(error);
   },
 );
 

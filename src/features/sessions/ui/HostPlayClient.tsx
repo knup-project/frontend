@@ -6,6 +6,7 @@ import { useSession, useNextQuestion, useEndSession } from '../hooks';
 import { useSessionSocket } from '../socket/hooks';
 import { useLeaderboard, updateLeaderboardCache } from '@/features/leaderboard/hooks';
 import { useQueryClient } from '@tanstack/react-query';
+import { CountUp } from '@/shared/ui/CountUp';
 import type { SessionQuestionEvent, SessionResultEvent } from '@/shared/types/api';
 
 export function HostPlayClient({ sessionId }: { sessionId: string }) {
@@ -43,8 +44,7 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
 
   const handleNext = () => {
     if (!session) return;
-    const isLast =
-      (session.currentQuestionIndex + 1) >= session.totalQuestions;
+    const isLast = session.currentQuestionIndex + 1 >= session.totalQuestions;
 
     if (isLast) {
       endSession(sessionId, {
@@ -60,31 +60,28 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
   const progress = totalQ > 0 ? ((currentIdx + 1) / totalQ) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-[#222222] flex flex-col">
+    <div className="stage min-h-screen flex flex-col">
       {/* 상단 바 */}
-      <div
-        className="flex items-center justify-between px-6 py-4"
-        style={{ background: 'rgba(255,255,255,0.05)' }}
-      >
+      <div className="flex items-center justify-between px-6 py-4" style={{ background: 'rgba(255,255,255,0.04)' }}>
         <div className="flex items-center gap-3">
-          <div
+          <span
             className="w-2 h-2 rounded-full"
-            style={{ background: connected ? '#22c55e' : '#929292' }}
+            style={{ background: connected ? 'var(--color-correct)' : 'var(--stage-muted)' }}
           />
-          <span style={{ color: 'white', fontWeight: 600 }}>
+          <span className="font-semibold" style={{ color: 'var(--stage-text)' }}>
             {session?.quizTitle}
           </span>
         </div>
-        <span style={{ fontSize: '14px', color: '#929292' }}>
+        <span className="tabular text-sm" style={{ color: 'var(--stage-muted)' }}>
           문제 {currentIdx + 1} / {totalQ}
         </span>
       </div>
 
-      {/* 진행 바 */}
-      <div className="h-1 bg-[#333333]">
+      {/* 진행 바 — 네온 */}
+      <div className="h-1" style={{ background: 'var(--stage-border)' }}>
         <div
           className="h-full transition-all duration-500"
-          style={{ width: `${progress}%`, background: 'var(--color-primary)' }}
+          style={{ width: `${progress}%`, background: 'var(--color-primary)', boxShadow: '0 0 12px rgba(230,0,0,0.6)' }}
         />
       </div>
 
@@ -94,61 +91,61 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
           {currentQuestion ? (
             <>
               {/* 문제 카드 */}
-              <div
-                className="rounded-[14px] p-6"
-                style={{ background: 'rgba(255,255,255,0.08)' }}
-              >
-                <p style={{ fontSize: '13px', color: '#929292', marginBottom: '12px' }}>
-                  {currentQuestion.question.type === 'MULTIPLE_CHOICE' ? '객관식' :
-                   currentQuestion.question.type === 'TRUE_FALSE' ? 'O/X' : '단답형'} ·{' '}
-                  {currentQuestion.question.timeLimit}초 · {currentQuestion.question.points}점
+              <div className="stage-card p-6">
+                <p className="text-sm mb-3" style={{ color: 'var(--stage-muted)' }}>
+                  {currentQuestion.question.type === 'MULTIPLE_CHOICE'
+                    ? '객관식'
+                    : currentQuestion.question.type === 'TRUE_FALSE'
+                      ? 'O/X'
+                      : '단답형'}{' '}
+                  · {currentQuestion.question.timeLimit}초 · {currentQuestion.question.points}점
                 </p>
-                <p style={{ fontSize: '22px', fontWeight: 600, color: 'white', lineHeight: 1.4 }}>
+                <p className="text-2xl font-semibold leading-snug" style={{ color: 'var(--stage-text)' }}>
                   {currentQuestion.question.content}
                 </p>
 
                 {currentQuestion.question.options && (
                   <div className="mt-4 grid grid-cols-2 gap-3">
-                    {currentQuestion.question.options.map((opt, i) => (
-                      <div
-                        key={i}
-                        className="rounded-[8px] p-3"
-                        style={{
-                          background: result?.correctAnswer === opt
-                            ? '#22c55e'
-                            : 'rgba(255,255,255,0.1)',
-                          color: 'white',
-                          fontSize: '15px',
-                        }}
-                      >
-                        {i + 1}. {opt}
-                      </div>
-                    ))}
+                    {currentQuestion.question.options.map((opt, i) => {
+                      const isAnswer = result?.correctAnswer === opt;
+                      return (
+                        <div
+                          key={i}
+                          className="rounded-xl p-3 text-sm flex items-center gap-2"
+                          style={{
+                            background: isAnswer ? 'var(--color-correct)' : 'rgba(255,255,255,0.07)',
+                            color: '#fff',
+                            boxShadow: isAnswer ? 'var(--glow-correct)' : 'none',
+                            fontWeight: isAnswer ? 700 : 500,
+                          }}
+                        >
+                          {isAnswer && <span aria-hidden>✓</span>}
+                          <span>{opt}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
               {/* 답변 통계 */}
               {result && (
-                <div
-                  className="rounded-[14px] p-5"
-                  style={{ background: 'rgba(255,255,255,0.08)' }}
-                >
-                  <p style={{ fontSize: '14px', color: '#929292', marginBottom: '12px' }}>
+                <div className="stage-card p-5">
+                  <p className="text-sm mb-3" style={{ color: 'var(--stage-muted)' }}>
                     답변 결과
                   </p>
                   <div className="flex gap-6">
                     <div className="text-center">
-                      <p style={{ fontSize: '32px', fontWeight: 700, color: 'white' }}>
-                        {answeredCount}
+                      <p className="text-3xl font-bold tabular" style={{ color: 'var(--stage-text)' }}>
+                        <CountUp value={answeredCount} />
                       </p>
-                      <p style={{ fontSize: '12px', color: '#929292' }}>제출</p>
+                      <p className="text-xs" style={{ color: 'var(--stage-muted)' }}>제출</p>
                     </div>
                     <div className="text-center">
-                      <p style={{ fontSize: '32px', fontWeight: 700, color: '#22c55e' }}>
-                        {Math.round(result.accuracy * 100)}%
+                      <p className="text-3xl font-bold tabular" style={{ color: 'var(--color-correct)' }}>
+                        <CountUp value={Math.round(result.accuracy * 100)} />%
                       </p>
-                      <p style={{ fontSize: '12px', color: '#929292' }}>정답률</p>
+                      <p className="text-xs" style={{ color: 'var(--stage-muted)' }}>정답률</p>
                     </div>
                   </div>
                 </div>
@@ -156,10 +153,10 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
             </>
           ) : (
             <div
-              className="flex-1 flex items-center justify-center rounded-[14px]"
-              style={{ background: 'rgba(255,255,255,0.05)' }}
+              className="flex-1 flex items-center justify-center rounded-2xl"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--stage-border)' }}
             >
-              <p style={{ color: '#929292' }}>첫 문제를 시작하세요</p>
+              <p style={{ color: 'var(--stage-muted)' }}>첫 문제를 시작하세요</p>
             </div>
           )}
 
@@ -167,58 +164,59 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
           <button
             onClick={handleNext}
             disabled={isMoving || isEnding}
-            style={{
-              height: '56px',
-              background: 'var(--color-primary)',
-              color: 'white',
-              fontSize: '18px', fontWeight: 700,
-              borderRadius: '9999px', border: 'none',
-              cursor: isMoving || isEnding ? 'not-allowed' : 'pointer',
-              opacity: isMoving || isEnding ? 0.7 : 1,
-            }}
+            className="btn-primary"
+            style={{ height: 56, fontSize: 18, fontWeight: 800, borderRadius: 9999 }}
           >
             {isMoving || isEnding
-              ? '처리 중...'
-              : (currentIdx + 1) >= totalQ
-              ? '퀴즈 종료'
-              : currentQuestion
-              ? '다음 문제 →'
-              : '첫 문제 시작'}
+              ? '처리 중…'
+              : currentIdx + 1 >= totalQ
+                ? '퀴즈 종료'
+                : currentQuestion
+                  ? '다음 문제 →'
+                  : '첫 문제 시작'}
           </button>
         </div>
 
         {/* 우: 실시간 리더보드 */}
-        <div
-          className="w-64 rounded-[14px] p-5 flex flex-col gap-3"
-          style={{ background: 'rgba(255,255,255,0.05)', flexShrink: 0 }}
-        >
-          <p style={{ fontSize: '14px', fontWeight: 600, color: 'white' }}>
+        <div className="w-64 stage-card p-5 flex flex-col gap-3" style={{ flexShrink: 0 }}>
+          <p className="text-sm font-semibold" style={{ color: 'var(--stage-text)' }}>
             실시간 순위 TOP 5
           </p>
           {leaderboard?.entries.map((entry, i) => (
             <div key={entry.participantId} className="flex items-center gap-3">
               <span
+                className="tabular"
                 style={{
-                  width: '24px', height: '24px',
+                  width: 24,
+                  height: 24,
                   borderRadius: '50%',
-                  background: i === 0 ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)',
-                  color: 'white', fontSize: '12px', fontWeight: 700,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: i === 0 ? 'var(--color-gold)' : 'rgba(255,255,255,0.1)',
+                  color: i === 0 ? '#2a2a2a' : '#fff',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   flexShrink: 0,
                 }}
               >
                 {i + 1}
               </span>
-              <span style={{ fontSize: '14px', color: 'white', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span
+                className="text-sm flex-1 truncate"
+                style={{ color: 'var(--stage-text)' }}
+              >
                 {entry.nickname}
               </span>
-              <span style={{ fontSize: '13px', color: '#929292' }}>
+              <span className="text-sm tabular" style={{ color: i === 0 ? 'var(--color-gold)' : 'var(--stage-muted)' }}>
                 {entry.totalPoints}pt
               </span>
             </div>
           ))}
           {(!leaderboard?.entries || leaderboard.entries.length === 0) && (
-            <p style={{ fontSize: '13px', color: '#929292' }}>아직 점수 없음</p>
+            <p className="text-sm" style={{ color: 'var(--stage-muted)' }}>
+              아직 점수 없음
+            </p>
           )}
         </div>
       </div>

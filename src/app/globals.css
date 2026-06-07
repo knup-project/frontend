@@ -23,6 +23,10 @@
   --color-muted: #6a6a6a;      /* 서브타이틀·비활성 탭 */
   --color-muted-soft: #929292; /* 비활성 링크 */
 
+  /* 시맨틱 — 폼 유효성 오류 (게임 정/오답과 별개) */
+  --color-error: #c13515;
+  --color-error-tint: #fdece8;
+
   /* ── Surface (라이트, 살짝 웜그레이) ── */
   --color-canvas: #ffffff;
   --color-surface-soft: #f7f7f5;

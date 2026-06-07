@@ -68,11 +68,11 @@ export function QuizForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-8">
       {/* 기본 정보 */}
-      <section className="bg-white rounded-[14px] border border-[#dddddd] p-6 flex flex-col gap-4">
-        <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#222222' }}>기본 정보</h2>
+      <section className="bg-canvas rounded-md border border-hairline p-6 flex flex-col gap-4">
+        <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-ink)' }}>기본 정보</h2>
 
         <div className="flex flex-col gap-1">
-          <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>
+          <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>
             퀴즈 제목 *
           </label>
           <input
@@ -85,7 +85,7 @@ export function QuizForm({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>설명</label>
+          <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>설명</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -94,10 +94,10 @@ export function QuizForm({
             style={{
               width: '100%',
               padding: '14px 12px',
-              border: '1px solid #dddddd',
+              border: '1px solid var(--color-hairline)',
               borderRadius: '8px',
               fontSize: '16px',
-              color: '#222222',
+              color: 'var(--color-ink)',
               outline: 'none',
               resize: 'vertical',
             }}
@@ -108,7 +108,7 @@ export function QuizForm({
       {/* 문제 목록 */}
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#222222' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-ink)' }}>
             문제 ({questions.length}개)
           </h2>
           <button

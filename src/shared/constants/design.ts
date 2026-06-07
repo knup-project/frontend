@@ -38,6 +38,10 @@ export const colors = {
   hairlineSoft: '#ededeb',
   borderStrong: '#c1c1bf',
 
+  // Semantic — 폼 유효성 오류 (게임 정/오답과 별개)
+  error: '#c13515',
+  errorTint: '#fdece8',
+
   // Scrim
   scrim: 'rgba(0, 0, 0, 0.5)',
 } as const;

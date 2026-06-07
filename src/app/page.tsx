@@ -8,17 +8,28 @@ import Link from 'next/link';
  */
 export default function HomePage() {
   return (
-    <main className="flex-1 flex flex-col items-center justify-center gap-8 p-8 min-h-screen">
+    <main className="flex-1 flex flex-col items-center justify-center gap-10 p-8 min-h-screen">
       {/* 로고 */}
       <div className="text-center">
-        <h1
-          style={{ fontSize: '28px', fontWeight: 700, lineHeight: '1.43', color: '#222222' }}
-          className="mb-3"
+        <div
+          aria-hidden
+          className="inline-flex items-center justify-center mb-5"
+          style={{
+            width: 88,
+            height: 88,
+            borderRadius: 28,
+            background: 'var(--color-primary)',
+            boxShadow: 'var(--glow-red)',
+            fontSize: 44,
+          }}
         >
-          KNU-P
+          🎮
+        </div>
+        <h1 className="text-5xl font-extrabold mb-3" style={{ color: 'var(--color-primary)', letterSpacing: '-0.02em' }}>
+          크누피
         </h1>
-        <p style={{ fontSize: '16px', lineHeight: '1.5', color: '#6a6a6a' }}>
-          실시간 퀴즈 플랫폼
+        <p className="text-lg" style={{ color: 'var(--color-muted)' }}>
+          경북대 실시간 퀴즈 — 강의실을 깨우다
         </p>
       </div>
 

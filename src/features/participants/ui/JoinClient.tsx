@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'motion/react';
 import { useJoinSession } from '../hooks';
+import { transitions } from '@/shared/lib/motion';
 
 export default function JoinClient() {
   const router = useRouter();
@@ -29,37 +31,33 @@ export default function JoinClient() {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto">
+    <motion.div
+      className="w-full max-w-sm mx-auto"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={transitions.base}
+    >
       {/* 헤더 */}
       <div className="text-center mb-8">
         <div
-          className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-          style={{ backgroundColor: 'var(--color-primary)', color: '#fff', fontSize: 28 }}
+          className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
+          style={{ backgroundColor: 'var(--color-primary)', boxShadow: 'var(--glow-red)', fontSize: 30 }}
+          aria-hidden
         >
           🎮
         </div>
-        <h1
-          className="text-3xl font-bold mb-2"
-          style={{ color: 'var(--color-ink)' }}
-        >
+        <h1 className="text-3xl font-extrabold mb-2" style={{ color: 'var(--stage-text)' }}>
           퀴즈 참가
         </h1>
-        <p style={{ color: 'var(--color-muted)' }}>PIN 코드와 닉네임을 입력해 주세요</p>
+        <p style={{ color: 'var(--stage-muted)' }}>PIN 코드와 닉네임을 입력해 주세요</p>
       </div>
 
       {/* 카드 */}
-      <div
-        className="card p-8"
-        style={{ boxShadow: 'var(--shadow-float)' }}
-      >
+      <div className="stage-card p-6">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          {/* PIN 입력 */}
+          {/* PIN 입력 — 대형 코드 */}
           <div>
-            <label
-              htmlFor="pin"
-              className="block text-sm font-medium mb-2"
-              style={{ color: 'var(--color-ink)' }}
-            >
+            <label htmlFor="pin" className="block text-sm font-semibold mb-2" style={{ color: 'var(--stage-muted)' }}>
               게임 PIN
             </label>
             <input
@@ -70,9 +68,9 @@ export default function JoinClient() {
               maxLength={10}
               value={pin}
               onChange={(e) => setPin(e.target.value.toUpperCase())}
-              placeholder="PIN 코드 입력"
-              className="input-text text-center text-2xl font-bold tracking-widest"
-              style={{ letterSpacing: '0.2em' }}
+              placeholder="------"
+              className="input-text text-center font-extrabold tabular"
+              style={{ height: 72, fontSize: 40, letterSpacing: '0.22em' }}
               autoFocus
               autoComplete="off"
             />
@@ -80,11 +78,7 @@ export default function JoinClient() {
 
           {/* 닉네임 입력 */}
           <div>
-            <label
-              htmlFor="nickname"
-              className="block text-sm font-medium mb-2"
-              style={{ color: 'var(--color-ink)' }}
-            >
+            <label htmlFor="nickname" className="block text-sm font-semibold mb-2" style={{ color: 'var(--stage-muted)' }}>
               닉네임
             </label>
             <input
@@ -101,10 +95,7 @@ export default function JoinClient() {
 
           {/* 에러 */}
           {errorMessage && (
-            <p
-              className="text-sm text-center"
-              style={{ color: 'var(--color-error)' }}
-            >
+            <p className="text-sm text-center u-shake" style={{ color: 'var(--color-primary-disabled)' }}>
               {errorMessage}
             </p>
           )}
@@ -115,18 +106,15 @@ export default function JoinClient() {
             className="btn-primary w-full mt-2"
             disabled={isPending || !pin.trim() || !nickname.trim()}
           >
-            {isPending ? '참가 중...' : '참가하기'}
+            {isPending ? '참가 중…' : '참가하기'}
           </button>
         </form>
       </div>
 
       {/* 안내 */}
-      <p
-        className="text-center text-sm mt-6"
-        style={{ color: 'var(--color-muted)' }}
-      >
+      <p className="text-center text-sm mt-6" style={{ color: 'var(--stage-muted)' }}>
         PIN 코드는 호스트에게 받으세요
       </p>
-    </div>
+    </motion.div>
   );
 }

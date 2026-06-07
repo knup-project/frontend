@@ -2,12 +2,15 @@
 
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'motion/react';
 import { useParticipantStore } from '../store';
 import { useSubmitAnswer } from '../hooks';
 import { useQuestionTimer } from '../hooks/useQuestionTimer';
 import { storeResult } from '../lib/resultStorage';
 import { QuestionOptions } from './QuestionOptions';
 import { useSessionSocket } from '@/features/sessions/socket/hooks';
+import { CountdownRing } from '@/shared/ui/CountdownRing';
+import { fadeUp, transitions } from '@/shared/lib/motion';
 import type {
   AnswerResultResponse,
   SessionQuestionEvent,
@@ -141,33 +144,45 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
   if (!activeQuestion) return null;
 
   const { question, questionIndex, totalQuestions } = activeQuestion.event;
-  const timerPercent = (timeLeft / question.timeLimit) * 100;
+  const progress = question.timeLimit > 0 ? timeLeft / question.timeLimit : 0;
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: DARK_BG }}
-    >
-      {/* 헤더: 진행률 바 + 문제 번호 + 타이머 + 점수 */}
-      <div className="px-6 pt-6 pb-4">
-        <TimerBar percent={timerPercent} />
+    <div className="stage min-h-screen flex flex-col">
+      {/* 헤더: 문제 번호 · 점수 */}
+      <div className="px-6 pt-6 pb-2 flex items-center justify-between">
+        <span className="stage-chip tabular">
+          {questionIndex + 1} / {totalQuestions}
+        </span>
+        <span className="stage-chip" style={{ color: 'var(--color-gold)' }}>
+          {question.points}점
+        </span>
+      </div>
 
-        <div className="flex items-center justify-between mt-4">
-          <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            {questionIndex + 1} / {totalQuestions}
-          </span>
-          <TimerBadge timeLeft={timeLeft} />
-          <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            {question.points}점
-          </span>
-        </div>
+      {/* 대형 타이머 링 */}
+      <div className="flex justify-center py-2">
+        <CountdownRing
+          progress={progress}
+          size={104}
+          stroke={9}
+          trackColor="var(--stage-border)"
+          textColor="var(--stage-text)"
+          label={timeLeft}
+        />
       </div>
 
       {/* 문제 본문 */}
-      <div className="px-6 py-4 flex-shrink-0">
-        <div className="rounded-2xl p-6 text-center" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
-          <p className="text-white text-xl font-bold leading-relaxed">{question.content}</p>
-        </div>
+      <div className="px-6 py-3 flex-shrink-0">
+        <motion.div
+          key={question.id}
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          className="stage-card p-6 text-center"
+        >
+          <p className="text-xl font-bold leading-relaxed" style={{ color: 'var(--stage-text)' }}>
+            {question.content}
+          </p>
+        </motion.div>
       </div>
 
       {/* 답변 영역 */}
@@ -187,22 +202,20 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
 }
 
 // ─────────────────────────────────────────────
-// 공통 상수
-// ─────────────────────────────────────────────
-
-const DARK_BG = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
-
-// ─────────────────────────────────────────────
 // 화면 단계별 소형 컴포넌트
 // ─────────────────────────────────────────────
 
 function WaitingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: DARK_BG }}>
+    <div className="stage min-h-screen flex flex-col items-center justify-center p-6">
       <div className="text-center">
-        <div className="text-5xl mb-6 animate-pulse">🎯</div>
-        <h2 className="text-white text-2xl font-bold mb-2">다음 문제를 기다리는 중</h2>
-        <p style={{ color: 'rgba(255,255,255,0.5)' }}>호스트가 문제를 시작하면 나타납니다</p>
+        <div className="text-5xl mb-6 animate-pulse" aria-hidden>
+          🎯
+        </div>
+        <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--stage-text)' }}>
+          다음 문제를 기다리는 중
+        </h2>
+        <p style={{ color: 'var(--stage-muted)' }}>호스트가 문제를 시작하면 나타납니다</p>
       </div>
     </div>
   );
@@ -210,47 +223,28 @@ function WaitingScreen() {
 
 function SubmittedScreen({ selectedAnswer }: { selectedAnswer: string | null }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: DARK_BG }}>
-      <div className="text-center">
-        <div className="text-5xl mb-6">{selectedAnswer ? '✅' : '⏱️'}</div>
-        <h2 className="text-white text-2xl font-bold mb-2">
+    <div className="stage min-h-screen flex flex-col items-center justify-center p-6">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={transitions.pop}
+        className="text-center"
+      >
+        <div className="text-6xl mb-6" aria-hidden>
+          {selectedAnswer ? '🚀' : '⏱️'}
+        </div>
+        <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--stage-text)' }}>
           {selectedAnswer ? '제출 완료!' : '시간 종료!'}
         </h2>
         {selectedAnswer && (
-          <p style={{ color: 'rgba(255,255,255,0.7)' }} className="text-lg">
-            선택한 답: <span className="font-semibold text-white">{selectedAnswer}</span>
+          <p className="text-lg" style={{ color: 'var(--stage-muted)' }}>
+            선택한 답: <span className="font-semibold" style={{ color: 'var(--stage-text)' }}>{selectedAnswer}</span>
           </p>
         )}
-        <p style={{ color: 'rgba(255,255,255,0.5)' }} className="mt-2">결과를 불러오는 중...</p>
-      </div>
-    </div>
-  );
-}
-
-function TimerBar({ percent }: { percent: number }) {
-  const color =
-    percent > 50 ? 'var(--color-primary)' : percent > 20 ? '#f59e0b' : '#ef4444';
-  return (
-    <div className="w-full h-2 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
-      <div
-        className="h-2 rounded-full transition-all duration-1000"
-        style={{ width: `${percent}%`, backgroundColor: color }}
-      />
-    </div>
-  );
-}
-
-function TimerBadge({ timeLeft }: { timeLeft: number }) {
-  const isUrgent = timeLeft <= 5;
-  return (
-    <div
-      className="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-lg"
-      style={{
-        backgroundColor: isUrgent ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)',
-        color: isUrgent ? '#fca5a5' : 'white',
-      }}
-    >
-      ⏱ {timeLeft}
+        <p style={{ color: 'var(--stage-muted)' }} className="mt-2">
+          결과를 불러오는 중…
+        </p>
+      </motion.div>
     </div>
   );
 }

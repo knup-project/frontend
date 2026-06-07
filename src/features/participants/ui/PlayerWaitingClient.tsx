@@ -2,9 +2,11 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'motion/react';
 import { useParticipantStore } from '../store';
 import { useSession } from '@/features/sessions/hooks';
 import { useSessionSocket } from '@/features/sessions/socket/hooks';
+import { CountUp } from '@/shared/ui/CountUp';
 import type { SessionStatusEvent } from '@/shared/types/api';
 
 interface Props {
@@ -47,54 +49,47 @@ export default function PlayerWaitingClient({ sessionId }: Props) {
   });
 
   const participantCount = session?.participantCount ?? 0;
-  const quizTitle = session?.quizTitle ?? '퀴즈 로딩 중...';
+  const quizTitle = session?.quizTitle ?? '퀴즈 로딩 중…';
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-      }}
-    >
+    <div className="stage min-h-screen flex flex-col items-center justify-center p-6">
       {/* 퀴즈 제목 */}
       <div className="text-center mb-12">
-        <p
-          className="text-sm font-medium mb-3 uppercase tracking-widest"
-          style={{ color: 'rgba(255,255,255,0.5)' }}
-        >
+        <p className="text-sm font-semibold mb-3 uppercase tracking-widest" style={{ color: 'var(--stage-muted)' }}>
           참가 완료
         </p>
-        <h1 className="text-3xl font-bold text-white mb-2">{quizTitle}</h1>
+        <h1 className="text-3xl font-extrabold mb-2" style={{ color: 'var(--stage-text)' }}>
+          {quizTitle}
+        </h1>
         {nickname && (
-          <p style={{ color: 'rgba(255,255,255,0.7)' }}>
-            <span
-              className="font-semibold"
-              style={{ color: 'var(--color-primary)' }}
-            >
+          <p style={{ color: 'var(--stage-muted)' }}>
+            <span className="font-bold" style={{ color: 'var(--color-primary)' }}>
               {nickname}
             </span>
-            으로 참가 중
+            으로 입장
           </p>
         )}
       </div>
 
-      {/* 대기 애니메이션 */}
+      {/* 대기 모션 */}
       <div className="mb-12 flex flex-col items-center gap-6">
-        {/* 스피너 */}
         <div className="relative">
-          <div
-            className="w-20 h-20 rounded-full border-4 border-white/10 border-t-white/70 animate-spin"
+          <motion.div
+            className="w-20 h-20 rounded-full"
+            style={{ border: '4px solid var(--stage-border)', borderTopColor: 'var(--color-primary)' }}
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
           />
-          <div
-            className="absolute inset-0 flex items-center justify-center text-3xl"
-          >
+          <div className="absolute inset-0 flex items-center justify-center text-3xl" aria-hidden>
             ⏳
           </div>
         </div>
 
         <div className="text-center">
-          <p className="text-white text-lg font-medium">호스트를 기다리는 중</p>
-          <p style={{ color: 'rgba(255,255,255,0.5)' }} className="text-sm mt-1">
+          <p className="text-lg font-semibold" style={{ color: 'var(--stage-text)' }}>
+            호스트를 기다리는 중
+          </p>
+          <p style={{ color: 'var(--stage-muted)' }} className="text-sm mt-1">
             호스트가 퀴즈를 시작하면 자동으로 이동합니다
           </p>
         </div>
@@ -102,23 +97,18 @@ export default function PlayerWaitingClient({ sessionId }: Props) {
 
       {/* 참가자 수 / 연결 상태 */}
       <div className="flex gap-4">
-        <div
-          className="px-5 py-3 rounded-full text-white font-medium text-sm"
-          style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-        >
-          👥 {participantCount}명 참가 중
+        <div className="stage-chip">
+          👥&nbsp;<span className="tabular"><CountUp value={participantCount} /></span>명 참가 중
         </div>
 
         <div
-          className="px-5 py-3 rounded-full text-sm font-medium"
+          className="stage-chip"
           style={{
-            backgroundColor: connected
-              ? 'rgba(34,197,94,0.15)'
-              : 'rgba(255,255,255,0.1)',
-            color: connected ? '#4ade80' : 'rgba(255,255,255,0.5)',
+            backgroundColor: connected ? 'rgba(31,169,113,0.16)' : 'rgba(255,255,255,0.06)',
+            color: connected ? 'var(--color-correct)' : 'var(--stage-muted)',
           }}
         >
-          {connected ? '🟢 연결됨' : '⚪ 연결 중...'}
+          {connected ? '🟢 연결됨' : '⚪ 연결 중…'}
         </div>
       </div>
     </div>

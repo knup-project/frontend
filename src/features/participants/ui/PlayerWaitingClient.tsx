@@ -2,11 +2,11 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'motion/react';
 import { useParticipantStore } from '../store';
 import { useSession } from '@/features/sessions/hooks';
 import { useSessionSocket } from '@/features/sessions/socket/hooks';
 import { CountUp } from '@/shared/ui/CountUp';
+import { Knupy } from '@/shared/ui/Knupy';
 import type { SessionStatusEvent } from '@/shared/types/api';
 
 interface Props {
@@ -73,17 +73,7 @@ export default function PlayerWaitingClient({ sessionId }: Props) {
 
       {/* 대기 모션 */}
       <div className="mb-12 flex flex-col items-center gap-6">
-        <div className="relative">
-          <motion.div
-            className="w-20 h-20 rounded-full"
-            style={{ border: '4px solid var(--stage-border)', borderTopColor: 'var(--color-primary)' }}
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center text-3xl" aria-hidden>
-            ⏳
-          </div>
-        </div>
+        <Knupy mood="thinking" size={104} />
 
         <div className="text-center">
           <p className="text-lg font-semibold" style={{ color: 'var(--stage-text)' }}>

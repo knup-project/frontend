@@ -14,8 +14,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'KNU-P | 실시간 퀴즈 플랫폼',
-  description: '강의실을 위한 실시간 퀴즈 플랫폼 — KNU-P',
+  title: '크누피 | 경북대 실시간 퀴즈',
+  description: '경북대학교 실시간 퀴즈 플랫폼 크누피 — 강의실을 깨우다',
 };
 
 export default function RootLayout({

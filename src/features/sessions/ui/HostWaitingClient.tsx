@@ -66,7 +66,7 @@ export function HostWaitingClient({ sessionId }: { sessionId: string }) {
       {/* PIN 디스플레이 */}
       <div
         className="rounded-[14px] text-center"
-        style={{ background: '#ff385c', padding: '32px 48px' }}
+        style={{ background: 'var(--color-primary)', padding: '32px 48px' }}
       >
         <p style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>
           참가 PIN
@@ -109,7 +109,7 @@ export function HostWaitingClient({ sessionId }: { sessionId: string }) {
       </div>
 
       {errorMsg && (
-        <p style={{ fontSize: '14px', color: '#ffd1da' }}>{errorMsg}</p>
+        <p style={{ fontSize: '14px', color: 'var(--color-primary-disabled)' }}>{errorMsg}</p>
       )}
 
       {/* 시작 버튼 */}
@@ -118,8 +118,8 @@ export function HostWaitingClient({ sessionId }: { sessionId: string }) {
         disabled={isPending || session.participantCount === 0}
         style={{
           height: '56px', padding: '0 48px',
-          background: isPending || session.participantCount === 0 ? '#ffd1da' : 'white',
-          color: isPending || session.participantCount === 0 ? '#929292' : '#ff385c',
+          background: isPending || session.participantCount === 0 ? 'var(--color-primary-disabled)' : 'white',
+          color: isPending || session.participantCount === 0 ? '#929292' : 'var(--color-primary)',
           fontSize: '18px', fontWeight: 700,
           borderRadius: '9999px', border: 'none',
           cursor: isPending || session.participantCount === 0 ? 'not-allowed' : 'pointer',

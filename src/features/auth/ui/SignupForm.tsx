@@ -105,7 +105,7 @@ export function SignupForm() {
 
       <p className="mt-6 text-center" style={{ fontSize: '14px', color: '#6a6a6a' }}>
         이미 계정이 있으신가요?{' '}
-        <Link href="/login" style={{ color: '#ff385c', fontWeight: 500 }} className="hover:underline">
+        <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 500 }} className="hover:underline">
           로그인
         </Link>
       </p>

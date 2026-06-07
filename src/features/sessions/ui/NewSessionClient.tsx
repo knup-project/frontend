@@ -86,9 +86,9 @@ export function NewSessionClient() {
                   style={{
                     flex: 1, height: '48px',
                     borderRadius: '8px', fontSize: '15px', fontWeight: 500,
-                    border: mode === m ? '2px solid #ff385c' : '1px solid #dddddd',
+                    border: mode === m ? '2px solid var(--color-primary)' : '1px solid #dddddd',
                     background: mode === m ? '#fff5f7' : 'white',
-                    color: mode === m ? '#ff385c' : '#222222',
+                    color: mode === m ? 'var(--color-primary)' : '#222222',
                     cursor: 'pointer',
                   }}
                 >

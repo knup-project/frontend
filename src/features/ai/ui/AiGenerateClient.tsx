@@ -213,7 +213,7 @@ export function AiGenerateClient() {
                         key={oi}
                         style={{
                           fontSize: '13px',
-                          color: opt === q.answer ? '#ff385c' : '#3f3f3f',
+                          color: opt === q.answer ? 'var(--color-primary)' : '#3f3f3f',
                           fontWeight: opt === q.answer ? 600 : 400,
                         }}
                       >
@@ -223,7 +223,7 @@ export function AiGenerateClient() {
                   </ul>
                 )}
                 <p className="mt-2" style={{ fontSize: '13px', color: '#6a6a6a' }}>
-                  정답: <span style={{ color: '#ff385c', fontWeight: 600 }}>{q.answer}</span>
+                  정답: <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{q.answer}</span>
                 </p>
               </div>
             ))}

@@ -68,7 +68,7 @@ export function HostResultClient({ sessionId }: { sessionId: string }) {
               <span style={{ fontSize: '15px', fontWeight: 600, color: 'white', flex: 1 }}>
                 {entry.nickname}
               </span>
-              <span style={{ fontSize: '14px', color: '#ff385c', fontWeight: 700 }}>
+              <span style={{ fontSize: '14px', color: 'var(--color-primary)', fontWeight: 700 }}>
                 {entry.totalPoints}pt
               </span>
               <span style={{ fontSize: '12px', color: '#929292' }}>
@@ -97,7 +97,7 @@ export function HostResultClient({ sessionId }: { sessionId: string }) {
           href="/host/sessions/new"
           style={{
             height: '48px', padding: '0 24px',
-            background: '#ff385c', color: 'white',
+            background: 'var(--color-primary)', color: 'white',
             fontSize: '15px', fontWeight: 700,
             borderRadius: '9999px', border: 'none',
             display: 'flex', alignItems: 'center',

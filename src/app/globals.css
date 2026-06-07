@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
 
 /* ─────────────────────────────────────────────
    크누피 — "Warm Arcade" 디자인 토큰
@@ -76,6 +77,13 @@
   --radius-md: 16px;  /* 카드 */
   --radius-lg: 24px;  /* 큰 패널·무대 */
   --radius-full: 9999px;
+
+  /* ── 아케이드 (Neubrutalism 악센트) — 디스플레이 폰트 + 하드 오프셋 섀도 ── */
+  --font-display: 'Jua', var(--font-sans), sans-serif;
+  --shadow-hard: 4px 4px 0 0 var(--color-ink);
+  --shadow-hard-sm: 3px 3px 0 0 var(--color-ink);
+  --shadow-hard-red: 5px 5px 0 0 var(--color-primary);
+  --shadow-hard-gold: 4px 4px 0 0 var(--color-gold);
 
   /* ── Elevation (단일 → 다단계) ── */
   --elev-1:
@@ -366,6 +374,62 @@ body {
     color: var(--stage-text);
     font-size: 14px;
     font-weight: 600;
+  }
+
+  /* ── 아케이드 유틸 (Neubrutalism 악센트) ── */
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+  }
+  .card-arcade {
+    background-color: var(--color-canvas);
+    border: 2px solid var(--color-ink);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-hard);
+  }
+  .card-arcade-interactive {
+    transition:
+      transform var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
+  }
+  .card-arcade-interactive:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 0 var(--color-ink);
+  }
+  .card-arcade-interactive:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 0 var(--color-ink);
+  }
+  .bg-dots {
+    background-image: radial-gradient(var(--color-hairline) 1.6px, transparent 1.6px);
+    background-size: 22px 22px;
+  }
+  .btn-arcade {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    padding: 0 28px;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: var(--font-display);
+    font-size: 18px;
+    border: 2px solid var(--color-ink);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-hard);
+    cursor: pointer;
+    transition:
+      transform var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
+  }
+  .btn-arcade:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 0 var(--color-ink);
+  }
+  .btn-arcade:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 0 var(--color-ink);
   }
 }
 

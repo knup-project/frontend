@@ -11,10 +11,10 @@ interface QuizCardProps {
 
 export function QuizCard({ quiz, onDelete, isDeleting }: QuizCardProps) {
   return (
-    <div className="card p-5 flex flex-col gap-3">
+    <div className="card-arcade card-arcade-interactive p-5 flex flex-col gap-3">
       {/* 제목 */}
       <div>
-        <h3 className="text-base font-semibold" style={{ color: 'var(--color-ink)' }}>
+        <h3 className="text-lg font-bold" style={{ color: 'var(--color-ink)' }}>
           {quiz.title}
         </h3>
         {quiz.description && (

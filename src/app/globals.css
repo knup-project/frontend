@@ -1,37 +1,62 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────
-   Airbnb 디자인 토큰 (design.md 기반)
+   크누피 — "Warm Arcade" 디자인 토큰
+   경북대 공식 전용색 KNU RED / KNU GRAY 기반.
+   브랜드 레드는 CTA·헤더·정답 셀러브레이션 전용,
+   정답=그린·오답=중립 dim·승리=골드. 라이브는 다크 무대.
+   (기준 문서: docs/DESIGN.md)
    ───────────────────────────────────────────── */
 
 :root {
-  /* Brand */
-  --color-primary: #ff385c;
-  --color-primary-active: #e00b41;
-  --color-primary-disabled: #ffd1da;
-
-  /* Surface */
-  --color-canvas: #ffffff;
-  --color-surface-soft: #f7f7f7;
-  --color-surface-strong: #f2f2f2;
-
-  /* Border */
-  --color-hairline: #dddddd;
-  --color-hairline-soft: #ebebeb;
-  --color-border-strong: #c1c1c1;
-
-  /* Text */
-  --color-ink: #222222;
-  --color-body: #3f3f3f;
-  --color-muted: #6a6a6a;
-  --color-muted-soft: #929292;
+  /* ── 브랜드 (KNU RED #E60000 = PANTONE DS87-1C) ── */
+  --color-primary: #e60000;          /* KNU RED — CTA·헤더·정답 셀러브레이션 전용 */
+  --color-primary-active: #c00000;   /* press */
+  --color-primary-disabled: #f4b3b3; /* 비활성 CTA */
+  --color-primary-tint: #fff2f2;     /* 라이트 틴트 (포커스 링·배경) */
   --color-on-primary: #ffffff;
 
-  /* Semantic */
-  --color-error: #c13515;
-  --color-error-hover: #b32505;
+  /* ── 중립 (KNU GRAY #797977 = PANTONE DS325-1C) ── */
+  --color-knu-gray: #797977;   /* 구조·아이콘 */
+  --color-ink: #2a2a2a;        /* 헤드라인·본문 */
+  --color-body: #4a4a4a;       /* 보조 본문 */
+  --color-muted: #6a6a6a;      /* 서브타이틀·비활성 탭 */
+  --color-muted-soft: #929292; /* 비활성 링크 */
 
-  /* Spacing */
+  /* ── Surface (라이트, 살짝 웜그레이) ── */
+  --color-canvas: #ffffff;
+  --color-surface-soft: #f7f7f5;
+  --color-surface-strong: #f0efed;
+
+  /* ── Border ── */
+  --color-hairline: #e3e3e3;
+  --color-hairline-soft: #ededeb;
+  --color-border-strong: #c1c1bf;
+
+  /* ── 다크 무대 (라이브: 문제·세션 화면) ── */
+  --stage-bg: #131217;      /* 최심부 무대 배경 */
+  --stage-ink: #17161a;     /* DESIGN 명시 — 기본 무대 톤 */
+  --stage-surface: #201e25; /* 무대 카드 */
+  --stage-raised: #2a2730;  /* 부유 요소 */
+  --stage-border: rgba(255, 255, 255, 0.08);
+  --stage-text: #f4f2f7;
+  --stage-muted: #a8a4b0;
+
+  /* ── 게임 시맨틱 색 ── */
+  --color-correct: #1fa971;      /* 정답 — 그린 (+골드 글로우) */
+  --color-correct-tint: #e6f7ef;
+  --color-wrong: #6a6a6a;        /* 오답 — 중립 dim (두 번째 레드 금지) */
+  --color-wrong-tint: #f0efed;
+  --color-gold: #c9a227;         /* 승리·시상 액센트 (전통 교색 헤리티지) */
+  --color-gold-tint: #fbf4dd;
+
+  /* 4지선다 — 레드 제외(브랜드 전용). 색 + 도형(△○□◇) 병행 */
+  --choice-blue: #2d7ff9;   /* △ */
+  --choice-yellow: #f4b400; /* ○ */
+  --choice-green: #1fa971;  /* □ */
+  --choice-purple: #7c4dff; /* ◇ */
+
+  /* ── Spacing ── */
   --spacing-xxs: 2px;
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -42,49 +67,105 @@
   --spacing-xxl: 48px;
   --spacing-section: 64px;
 
-  /* Shadow (단일 elevation tier) */
-  --shadow-float:
-    rgba(0, 0, 0, 0.02) 0 0 0 1px,
-    rgba(0, 0, 0, 0.04) 0 2px 6px 0,
-    rgba(0, 0, 0, 0.1) 0 4px 8px 0;
+  /* ── Radius (아케이드 친근감 ↑) ── */
+  --radius-sm: 10px;  /* 버튼 */
+  --radius-md: 16px;  /* 카드 */
+  --radius-lg: 24px;  /* 큰 패널·무대 */
+  --radius-full: 9999px;
+
+  /* ── Elevation (단일 → 다단계) ── */
+  --elev-1:
+    rgba(0, 0, 0, 0.04) 0 1px 2px 0,
+    rgba(0, 0, 0, 0.04) 0 0 0 1px;
+  --elev-2:
+    rgba(0, 0, 0, 0.05) 0 2px 6px 0,
+    rgba(0, 0, 0, 0.04) 0 0 0 1px;
+  --elev-3:
+    rgba(0, 0, 0, 0.08) 0 6px 16px -2px,
+    rgba(0, 0, 0, 0.04) 0 0 0 1px;
+  --elev-4:
+    rgba(0, 0, 0, 0.14) 0 18px 40px -8px,
+    rgba(0, 0, 0, 0.05) 0 0 0 1px;
+
+  /* 브랜드·게임 글로우 */
+  --glow-red: 0 0 0 1px rgba(230, 0, 0, 0.35), 0 8px 28px -6px rgba(230, 0, 0, 0.5);
+  --glow-red-neon: 0 0 24px rgba(230, 0, 0, 0.45), 0 0 64px rgba(230, 0, 0, 0.25);
+  --glow-correct: 0 0 0 1px rgba(31, 169, 113, 0.35), 0 8px 28px -6px rgba(31, 169, 113, 0.45);
+  --glow-gold: 0 0 24px rgba(201, 162, 39, 0.5), 0 0 64px rgba(201, 162, 39, 0.25);
+
+  /* 하위호환 (기존 .card 등에서 참조) */
+  --shadow-float: var(--elev-3);
+
+  /* ── 모션 토큰 ── */
+  --dur-fast: 120ms;
+  --dur-base: 220ms;
+  --dur-slow: 420ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);       /* 부드러운 감속 */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* 살짝 튐 */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /* ─────────────────────────────────────────────
-   Tailwind v4 테마 확장
+   Tailwind v4 테마 확장 (bg-primary, text-ink, bg-stage-ink ...)
    ───────────────────────────────────────────── */
 
 @theme {
-  /* 색상 */
+  /* 브랜드 */
   --color-primary: var(--color-primary);
   --color-primary-active: var(--color-primary-active);
   --color-primary-disabled: var(--color-primary-disabled);
+  --color-primary-tint: var(--color-primary-tint);
+  --color-on-primary: var(--color-on-primary);
 
-  --color-canvas: var(--color-canvas);
-  --color-surface-soft: var(--color-surface-soft);
-  --color-surface-strong: var(--color-surface-strong);
-
-  --color-hairline: var(--color-hairline);
-  --color-hairline-soft: var(--color-hairline-soft);
-  --color-border-strong: var(--color-border-strong);
-
+  /* 중립 */
+  --color-knu-gray: var(--color-knu-gray);
   --color-ink: var(--color-ink);
   --color-body-text: var(--color-body);
   --color-muted: var(--color-muted);
   --color-muted-soft: var(--color-muted-soft);
-  --color-on-primary: var(--color-on-primary);
 
-  --color-error: var(--color-error);
+  /* Surface / Border */
+  --color-canvas: var(--color-canvas);
+  --color-surface-soft: var(--color-surface-soft);
+  --color-surface-strong: var(--color-surface-strong);
+  --color-hairline: var(--color-hairline);
+  --color-hairline-soft: var(--color-hairline-soft);
+  --color-border-strong: var(--color-border-strong);
 
-  /* 폰트 — Inter (Airbnb Cereal 대체) */
-  --font-sans: Inter, Circular, -apple-system, system-ui, Roboto, "Helvetica Neue", sans-serif;
+  /* 다크 무대 */
+  --color-stage-bg: var(--stage-bg);
+  --color-stage-ink: var(--stage-ink);
+  --color-stage-surface: var(--stage-surface);
+  --color-stage-raised: var(--stage-raised);
+  --color-stage-text: var(--stage-text);
+  --color-stage-muted: var(--stage-muted);
+
+  /* 게임 색 */
+  --color-correct: var(--color-correct);
+  --color-correct-tint: var(--color-correct-tint);
+  --color-wrong: var(--color-wrong);
+  --color-gold: var(--color-gold);
+  --color-gold-tint: var(--color-gold-tint);
+  --color-choice-blue: var(--choice-blue);
+  --color-choice-yellow: var(--choice-yellow);
+  --color-choice-green: var(--choice-green);
+  --color-choice-purple: var(--choice-purple);
+
+  /* 폰트 — Inter (next/font 가 --font-sans 주입) */
+  --font-sans: Inter, -apple-system, system-ui, Roboto, "Helvetica Neue", sans-serif;
+
+  /* 반경 */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
 
   /* 그림자 */
   --shadow-float: var(--shadow-float);
-
-  /* 반경 */
-  --radius-sm: 8px;      /* 버튼 */
-  --radius-md: 14px;     /* 카드 */
-  --radius-full: 9999px; /* 검색바, 알약 버튼 */
+  --shadow-elev-1: var(--elev-1);
+  --shadow-elev-2: var(--elev-2);
+  --shadow-elev-3: var(--elev-3);
+  --shadow-elev-4: var(--elev-4);
 }
 
 /* ─────────────────────────────────────────────
@@ -101,12 +182,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 숫자 주인공화 — 점수·타이머·PIN (자릿수 흔들림 방지) */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
 /* ─────────────────────────────────────────────
-   컴포넌트 유틸리티 (Airbnb 디자인 시스템)
+   컴포넌트 유틸리티
    ───────────────────────────────────────────── */
 
 @layer components {
-  /* 버튼 - Primary (Rausch) */
+  /* 버튼 — Primary (KNU RED) */
   .btn-primary {
     display: inline-flex;
     align-items: center;
@@ -116,21 +203,30 @@ body {
     background-color: var(--color-primary);
     color: var(--color-on-primary);
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 600;
     border-radius: var(--radius-sm);
     border: none;
     cursor: pointer;
-    transition: background-color 150ms ease;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out);
   }
   .btn-primary:hover {
     background-color: var(--color-primary-active);
+    box-shadow: var(--glow-red);
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
   }
   .btn-primary:disabled {
     background-color: var(--color-primary-disabled);
+    box-shadow: none;
+    transform: none;
     cursor: not-allowed;
   }
 
-  /* 버튼 - Secondary */
+  /* 버튼 — Secondary */
   .btn-secondary {
     display: inline-flex;
     align-items: center;
@@ -140,17 +236,29 @@ body {
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 600;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--color-ink);
+    border: 1px solid var(--color-border-strong);
     cursor: pointer;
-    transition: background-color 150ms ease;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
   }
   .btn-secondary:hover {
     background-color: var(--color-surface-soft);
+    border-color: var(--color-ink);
+  }
+  .btn-secondary:active {
+    transform: scale(0.97);
+  }
+  .btn-secondary:disabled {
+    color: var(--color-muted-soft);
+    transform: none;
+    cursor: not-allowed;
   }
 
-  /* 버튼 - Pill (Rausch) */
+  /* 버튼 — Pill */
   .btn-pill {
     display: inline-flex;
     align-items: center;
@@ -159,28 +267,39 @@ body {
     background-color: var(--color-primary);
     color: var(--color-on-primary);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     border-radius: var(--radius-full);
     border: none;
     cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+  .btn-pill:hover {
+    background-color: var(--color-primary-active);
+  }
+  .btn-pill:active {
+    transform: scale(0.96);
   }
 
   /* 텍스트 입력 */
   .input-text {
     width: 100%;
     height: 56px;
-    padding: 14px 12px;
+    padding: 14px 16px;
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font-size: 16px;
     border: 1px solid var(--color-hairline);
     border-radius: var(--radius-sm);
     outline: none;
-    transition: border-color 150ms ease, border-width 150ms ease;
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
   }
   .input-text:focus {
-    border-width: 2px;
-    border-color: var(--color-ink);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-tint);
   }
   .input-text::placeholder {
     color: var(--color-muted);
@@ -191,15 +310,80 @@ body {
     background-color: var(--color-canvas);
     border-radius: var(--radius-md);
     border: 1px solid var(--color-hairline);
+    box-shadow: var(--elev-1);
     overflow: hidden;
+    transition:
+      box-shadow var(--dur-base) var(--ease-out),
+      transform var(--dur-base) var(--ease-out);
   }
   .card:hover {
-    box-shadow: var(--shadow-float);
+    box-shadow: var(--elev-3);
+  }
+
+  /* 칩 */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-surface-soft);
+    color: var(--color-body);
+    font-size: 13px;
+    font-weight: 600;
   }
 
   /* 섹션 여백 */
   .section-padding {
     padding-top: var(--spacing-section);
     padding-bottom: var(--spacing-section);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   게임 모션 유틸 (CSS) — framer-motion 과 병행
+   ───────────────────────────────────────────── */
+
+@keyframes knu-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+@keyframes knu-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+
+@keyframes knu-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(230, 0, 0, 0.45); }
+  100% { box-shadow: 0 0 0 18px rgba(230, 0, 0, 0); }
+}
+
+@keyframes knu-float-in {
+  0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.u-shake { animation: knu-shake var(--dur-slow) var(--ease-in-out); }
+.u-pop { animation: knu-pop var(--dur-base) var(--ease-bounce); }
+.u-pulse-ring { animation: knu-pulse-ring 1.4s var(--ease-out) infinite; }
+.u-float-in { animation: knu-float-in var(--dur-base) var(--ease-out) both; }
+
+/* ─────────────────────────────────────────────
+   접근성 — prefers-reduced-motion
+   ───────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

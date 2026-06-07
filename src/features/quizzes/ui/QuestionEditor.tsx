@@ -75,7 +75,7 @@ export function QuestionEditor({
               fontSize: '13px',
               fontWeight: 500,
               border: question.type === value ? 'none' : '1px solid #dddddd',
-              background: question.type === value ? '#ff385c' : 'white',
+              background: question.type === value ? 'var(--color-primary)' : 'white',
               color: question.type === value ? 'white' : '#6a6a6a',
               cursor: 'pointer',
             }}
@@ -176,7 +176,7 @@ function AnswerInput({
                 fontSize: '20px',
                 fontWeight: 700,
                 border: question.answer === v ? 'none' : '1px solid #dddddd',
-                background: question.answer === v ? '#ff385c' : 'white',
+                background: question.answer === v ? 'var(--color-primary)' : 'white',
                 color: question.answer === v ? 'white' : '#222222',
                 cursor: 'pointer',
               }}

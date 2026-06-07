@@ -108,7 +108,7 @@ export function LoginForm() {
         계정이 없으신가요?{' '}
         <Link
           href="/signup"
-          style={{ color: '#ff385c', fontWeight: 500 }}
+          style={{ color: 'var(--color-primary)', fontWeight: 500 }}
           className="hover:underline"
         >
           회원가입

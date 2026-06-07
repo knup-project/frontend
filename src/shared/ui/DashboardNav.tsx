@@ -30,7 +30,7 @@ export function DashboardNav() {
         {/* 로고 */}
         <Link
           href="/dashboard/quizzes"
-          style={{ fontSize: '20px', fontWeight: 700, color: '#ff385c' }}
+          style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-primary)' }}
         >
           KNU-P
         </Link>

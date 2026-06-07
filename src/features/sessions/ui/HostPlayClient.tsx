@@ -84,7 +84,7 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
       <div className="h-1 bg-[#333333]">
         <div
           className="h-full transition-all duration-500"
-          style={{ width: `${progress}%`, background: '#ff385c' }}
+          style={{ width: `${progress}%`, background: 'var(--color-primary)' }}
         />
       </div>
 
@@ -169,7 +169,7 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
             disabled={isMoving || isEnding}
             style={{
               height: '56px',
-              background: '#ff385c',
+              background: 'var(--color-primary)',
               color: 'white',
               fontSize: '18px', fontWeight: 700,
               borderRadius: '9999px', border: 'none',
@@ -201,7 +201,7 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
                 style={{
                   width: '24px', height: '24px',
                   borderRadius: '50%',
-                  background: i === 0 ? '#ff385c' : 'rgba(255,255,255,0.1)',
+                  background: i === 0 ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)',
                   color: 'white', fontSize: '12px', fontWeight: 700,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,

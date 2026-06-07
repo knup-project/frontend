@@ -55,7 +55,7 @@ export function AiGenerateClient() {
   const labelStyle = { fontSize: 14, fontWeight: 600, color: 'var(--color-muted)' } as const;
 
   return (
-    <div className="flex flex-col gap-6 max-w-3xl">
+    <div className="flex flex-col gap-6 max-w-3xl mx-auto">
       {/* 헤더 */}
       <div className="flex items-center gap-3">
         <Link href="/dashboard/quizzes" style={{ color: 'var(--color-muted)', fontSize: 14 }}>

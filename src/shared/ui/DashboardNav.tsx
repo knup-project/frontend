@@ -27,16 +27,8 @@ export function DashboardNav() {
         {/* 로고 — 크누피 */}
         <Link
           href="/dashboard/quizzes"
-          className="flex items-center gap-2"
           style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.01em' }}
         >
-          <span
-            aria-hidden
-            className="inline-flex items-center justify-center"
-            style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--color-primary)', color: '#fff', fontSize: 14 }}
-          >
-            ?
-          </span>
           크누피
         </Link>
 

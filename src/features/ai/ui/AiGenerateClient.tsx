@@ -62,7 +62,7 @@ export function AiGenerateClient() {
           ← 내 퀴즈
         </Link>
         <span style={{ color: 'var(--color-hairline)' }}>/</span>
-        <h1 className="text-xl font-semibold" style={{ color: 'var(--color-ink)' }}>
+        <h1 className="font-display text-2xl" style={{ color: 'var(--color-ink)' }}>
           AI 퀴즈 생성
         </h1>
         <span className="chip" style={{ background: 'var(--color-primary-tint)', color: 'var(--color-primary)' }}>
@@ -94,7 +94,7 @@ export function AiGenerateClient() {
       </div>
 
       {/* 입력 영역 */}
-      <div className="card p-6 flex flex-col gap-5">
+      <div className="card-arcade p-6 flex flex-col gap-5">
         {tab === 'text' ? (
           <div className="flex flex-col gap-1">
             <label style={labelStyle}>학습 내용 텍스트 *</label>
@@ -188,7 +188,7 @@ export function AiGenerateClient() {
 
       {/* 생성 결과 미리보기 */}
       {result && (
-        <div className="card p-6 flex flex-col gap-4">
+        <div className="card-arcade p-6 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold" style={{ color: 'var(--color-ink)' }}>
               생성된 문제 ({result.questions.length}개)

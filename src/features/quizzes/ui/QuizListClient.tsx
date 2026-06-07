@@ -14,7 +14,7 @@ export function QuizListClient() {
       {/* 헤더 */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold" style={{ color: 'var(--color-ink)' }}>
+          <h1 className="font-display text-4xl" style={{ color: 'var(--color-ink)' }}>
             내 퀴즈 서재
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>
@@ -55,9 +55,9 @@ export function QuizListClient() {
 
       {/* 빈 상태 */}
       {!isLoading && data?.content.length === 0 && (
-        <div className="card flex flex-col items-center justify-center py-20 gap-3 text-center">
+        <div className="card-arcade flex flex-col items-center justify-center py-20 gap-3 text-center">
           <Knupy mood="idle" size={88} float={false} />
-          <p className="text-xl font-bold" style={{ color: 'var(--color-ink)' }}>
+          <p className="font-display text-2xl" style={{ color: 'var(--color-ink)' }}>
             아직 퀴즈가 없어요
           </p>
           <p className="text-sm" style={{ color: 'var(--color-muted)' }}>

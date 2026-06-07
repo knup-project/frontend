@@ -9,6 +9,7 @@ import { useSessionSocket } from '@/features/sessions/socket/hooks';
 import { CountUp } from '@/shared/ui/CountUp';
 import { Celebration } from '@/shared/ui/Celebration';
 import { transitions } from '@/shared/lib/motion';
+import { Knupy } from '@/shared/ui/Knupy';
 import type { AnswerResultResponse, SessionQuestionEvent, SessionStatusEvent } from '@/shared/types/api';
 
 interface Props {
@@ -90,8 +91,8 @@ export default function PlayerResultClient({ sessionId }: Props) {
         animate={correct ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1, x: [0, -8, 8, -5, 5, 0] }}
         transition={transitions.pop}
       >
-        <div className="text-7xl mb-4" aria-hidden>
-          {correct ? '🎉' : '😅'}
+        <div className="flex justify-center mb-4">
+          <Knupy mood={correct ? 'happy' : 'sad'} size={112} />
         </div>
         <h1
           className="text-4xl font-extrabold mb-2"

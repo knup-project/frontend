@@ -10,6 +10,7 @@ import { storeResult } from '../lib/resultStorage';
 import { QuestionOptions } from './QuestionOptions';
 import { useSessionSocket } from '@/features/sessions/socket/hooks';
 import { CountdownRing } from '@/shared/ui/CountdownRing';
+import { Knupy } from '@/shared/ui/Knupy';
 import { fadeUp, transitions } from '@/shared/lib/motion';
 import type {
   AnswerResultResponse,
@@ -209,8 +210,8 @@ function WaitingScreen() {
   return (
     <div className="stage min-h-screen flex flex-col items-center justify-center p-6">
       <div className="text-center">
-        <div className="text-5xl mb-6 animate-pulse" aria-hidden>
-          🎯
+        <div className="mb-6 flex justify-center">
+          <Knupy mood="thinking" size={96} />
         </div>
         <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--stage-text)' }}>
           다음 문제를 기다리는 중

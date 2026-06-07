@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Knupy } from '@/shared/ui/Knupy';
 
 /**
  * 랜딩 페이지
@@ -11,19 +12,8 @@ export default function HomePage() {
     <main className="flex-1 flex flex-col items-center justify-center gap-10 p-8 min-h-screen">
       {/* 로고 */}
       <div className="text-center">
-        <div
-          aria-hidden
-          className="inline-flex items-center justify-center mb-5"
-          style={{
-            width: 88,
-            height: 88,
-            borderRadius: 28,
-            background: 'var(--color-primary)',
-            boxShadow: 'var(--glow-red)',
-            fontSize: 44,
-          }}
-        >
-          🎮
+        <div className="flex justify-center mb-4">
+          <Knupy mood="happy" size={132} />
         </div>
         <h1 className="text-5xl font-extrabold mb-3" style={{ color: 'var(--color-primary)', letterSpacing: '-0.02em' }}>
           크누피

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { useJoinSession } from '../hooks';
 import { transitions } from '@/shared/lib/motion';
+import { Knupy } from '@/shared/ui/Knupy';
 
 export default function JoinClient() {
   const router = useRouter();
@@ -39,12 +40,8 @@ export default function JoinClient() {
     >
       {/* 헤더 */}
       <div className="text-center mb-8">
-        <div
-          className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
-          style={{ backgroundColor: 'var(--color-primary)', boxShadow: 'var(--glow-red)', fontSize: 30 }}
-          aria-hidden
-        >
-          🎮
+        <div className="flex justify-center mb-4">
+          <Knupy mood="idle" size={84} />
         </div>
         <h1 className="text-3xl font-extrabold mb-2" style={{ color: 'var(--stage-text)' }}>
           퀴즈 참가

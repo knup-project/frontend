@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useMyQuizzes, useDeleteQuiz } from '../hooks';
 import { QuizCard } from './QuizCard';
+import { Knupy } from '@/shared/ui/Knupy';
 
 export function QuizListClient() {
   const { data, isLoading, isError } = useMyQuizzes({ size: 20 });
@@ -55,9 +56,7 @@ export function QuizListClient() {
       {/* 빈 상태 */}
       {!isLoading && data?.content.length === 0 && (
         <div className="card flex flex-col items-center justify-center py-20 gap-3 text-center">
-          <div className="text-5xl" aria-hidden>
-            📚
-          </div>
+          <Knupy mood="idle" size={88} float={false} />
           <p className="text-xl font-bold" style={{ color: 'var(--color-ink)' }}>
             아직 퀴즈가 없어요
           </p>

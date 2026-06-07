@@ -338,6 +338,31 @@ body {
     padding-top: var(--spacing-section);
     padding-bottom: var(--spacing-section);
   }
+
+  /* 라이브 다크 무대 (참가자 PIN·대기·문제·결과·리더보드) */
+  .stage {
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(230, 0, 0, 0.12), transparent 55%),
+      radial-gradient(120% 80% at 50% 0%, var(--stage-surface) 0%, var(--stage-ink) 48%, var(--stage-bg) 100%);
+    color: var(--stage-text);
+  }
+  .stage-card {
+    background-color: var(--stage-surface);
+    border: 1px solid var(--stage-border);
+    border-radius: var(--radius-lg);
+  }
+  .stage-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--stage-border);
+    color: var(--stage-text);
+    font-size: 14px;
+    font-weight: 600;
+  }
 }
 
 /* ─────────────────────────────────────────────

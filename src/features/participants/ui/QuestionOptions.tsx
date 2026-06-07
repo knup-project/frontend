@@ -1,10 +1,30 @@
 'use client';
 
 import type { QuestionType } from '@/shared/types/api';
+import { motion } from 'motion/react';
+import { choices } from '@/shared/constants/design';
+import { staggerChildren, popIn } from '@/shared/lib/motion';
 
-// Kahoot 스타일 색상 / 도형
-const OPTION_COLORS = ['#e21b3c', '#1368ce', '#d89e00', '#26890c'];
-const OPTION_SHAPES = ['▲', '◆', '●', '★'];
+/**
+ * 문제 유형별 답변 선택 UI
+ *
+ * - MULTIPLE_CHOICE : 최대 4개의 색상 버튼 (파/노/초/보라 — 레드 제외, 브랜드 전용)
+ * - TRUE_FALSE      : ⭕ / ✕ 두 버튼
+ * - SHORT_ANSWER    : 텍스트 입력 + 제출 버튼
+ *
+ * 접근성: 색만으로 구분하지 않도록 도형 글리프(▲●■◆)·체크 표시를 병행한다.
+ */
+
+// True/False — 색(파·노) + 글리프(⭕·✕)로 이중 구분
+const TF_TOKENS = [
+  { color: choices[0].color, glyph: '⭕' },
+  { color: choices[1].color, glyph: '✕' },
+] as const;
+
+// 노란 버튼만 어두운 전경색(대비 확보), 나머지는 흰색
+function foreground(key: string) {
+  return key === 'yellow' ? '#2a2a2a' : '#ffffff';
+}
 
 export interface QuestionOptionsProps {
   type: QuestionType;
@@ -16,13 +36,6 @@ export interface QuestionOptionsProps {
   onShortAnswerSubmit: (e: React.SyntheticEvent<HTMLFormElement>) => void;
 }
 
-/**
- * 문제 유형별 답변 선택 UI
- *
- * - MULTIPLE_CHOICE : 최대 4개의 색상 버튼
- * - TRUE_FALSE      : ⭕ / ❌ 두 버튼
- * - SHORT_ANSWER    : 텍스트 입력 + 제출 버튼
- */
 export function QuestionOptions({
   type,
   options,
@@ -34,62 +47,94 @@ export function QuestionOptions({
 }: QuestionOptionsProps) {
   if (type === 'MULTIPLE_CHOICE' && options) {
     return (
-      <div className="grid grid-cols-2 gap-3 h-full">
+      <motion.div
+        className="grid grid-cols-2 gap-3 h-full"
+        variants={staggerChildren}
+        initial="hidden"
+        animate="show"
+      >
         {options.map((opt, idx) => {
-          const color = OPTION_COLORS[idx % OPTION_COLORS.length];
-          const shape = OPTION_SHAPES[idx % OPTION_SHAPES.length];
+          const token = choices[idx % choices.length];
           const isSelected = selectedAnswer === opt;
+          const dimmed = !!selectedAnswer && !isSelected;
 
           return (
-            <button
+            <motion.button
               key={idx}
+              variants={popIn}
               onClick={() => onOptionClick(opt)}
               disabled={!!selectedAnswer}
-              className="relative flex flex-col items-center justify-center gap-2 rounded-2xl p-4 font-semibold text-white transition-all"
+              whileTap={{ scale: 0.95 }}
+              className="relative flex flex-col items-center justify-center gap-2 rounded-2xl p-4 font-semibold transition-opacity"
               style={{
-                backgroundColor: color,
-                opacity: selectedAnswer && !isSelected ? 0.5 : 1,
-                transform: isSelected ? 'scale(0.97)' : 'scale(1)',
-                minHeight: 100,
+                backgroundColor: token.color,
+                color: foreground(token.key),
+                opacity: dimmed ? 0.4 : 1,
+                outline: isSelected ? '3px solid #fff' : 'none',
+                outlineOffset: '-3px',
+                boxShadow: isSelected ? '0 0 0 4px rgba(255,255,255,0.25)' : 'none',
+                minHeight: 104,
               }}
             >
-              <span className="text-2xl">{shape}</span>
+              <span className="text-3xl" aria-hidden>
+                {token.glyph}
+              </span>
               <span className="text-sm text-center leading-tight">{opt}</span>
               {isSelected && (
-                <span className="absolute top-2 right-2 text-lg">✓</span>
+                <span className="absolute top-2 right-2 text-lg" aria-hidden>
+                  ✓
+                </span>
               )}
-            </button>
+            </motion.button>
           );
         })}
-      </div>
+      </motion.div>
     );
   }
 
   if (type === 'TRUE_FALSE') {
     return (
-      <div className="grid grid-cols-2 gap-4 h-full max-h-52">
+      <motion.div
+        className="grid grid-cols-2 gap-4 h-full max-h-52"
+        variants={staggerChildren}
+        initial="hidden"
+        animate="show"
+      >
         {(['True', 'False'] as const).map((val, idx) => {
-          const color = OPTION_COLORS[idx];
+          const token = TF_TOKENS[idx];
           const isSelected = selectedAnswer === val;
+          const dimmed = !!selectedAnswer && !isSelected;
+
           return (
-            <button
+            <motion.button
               key={val}
+              variants={popIn}
               onClick={() => onOptionClick(val)}
               disabled={!!selectedAnswer}
-              className="flex flex-col items-center justify-center gap-3 rounded-2xl font-bold text-white text-2xl transition-all"
+              whileTap={{ scale: 0.95 }}
+              className="flex flex-col items-center justify-center gap-3 rounded-2xl font-bold text-2xl"
               style={{
-                backgroundColor: color,
-                opacity: selectedAnswer && !isSelected ? 0.5 : 1,
+                backgroundColor: token.color,
+                color: idx === 1 ? '#2a2a2a' : '#fff',
+                opacity: dimmed ? 0.4 : 1,
+                outline: isSelected ? '3px solid #fff' : 'none',
+                outlineOffset: '-3px',
                 minHeight: 120,
               }}
             >
-              <span className="text-4xl">{val === 'True' ? '⭕' : '❌'}</span>
+              <span className="text-5xl" aria-hidden>
+                {token.glyph}
+              </span>
               <span>{val}</span>
-              {isSelected && <span className="text-lg">✓</span>}
-            </button>
+              {isSelected && (
+                <span className="text-lg" aria-hidden>
+                  ✓
+                </span>
+              )}
+            </motion.button>
           );
         })}
-      </div>
+      </motion.div>
     );
   }
 
@@ -106,11 +151,7 @@ export function QuestionOptions({
         autoComplete="off"
         autoFocus
       />
-      <button
-        type="submit"
-        disabled={!shortAnswer.trim() || !!selectedAnswer}
-        className="btn-primary"
-      >
+      <button type="submit" disabled={!shortAnswer.trim() || !!selectedAnswer} className="btn-primary">
         제출
       </button>
     </form>

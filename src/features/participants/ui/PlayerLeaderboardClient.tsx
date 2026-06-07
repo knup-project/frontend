@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'motion/react';
 import { useParticipantStore } from '../store';
 import { useLeaderboard, useTeamLeaderboard } from '@/features/leaderboard/hooks';
 import { useSession } from '@/features/sessions/hooks';
+import { CountUp } from '@/shared/ui/CountUp';
+import { staggerChildren, fadeUp } from '@/shared/lib/motion';
 import type { LeaderboardEntry, TeamLeaderboardEntry } from '@/shared/types/api';
 
 const MEDAL_EMOJI = ['🥇', '🥈', '🥉'];
@@ -13,6 +16,21 @@ interface Props {
 }
 
 type Tab = 'individual' | 'team';
+
+// 1등은 골드 글로우, 그 외는 무대 톤
+function rowStyle({ isMe, isFirst }: { isMe: boolean; isFirst: boolean }): React.CSSProperties {
+  if (isMe) {
+    return { backgroundColor: 'rgba(230,0,0,0.16)', border: '1px solid rgba(230,0,0,0.45)' };
+  }
+  if (isFirst) {
+    return {
+      backgroundColor: 'rgba(201,162,39,0.14)',
+      border: '1px solid rgba(201,162,39,0.5)',
+      boxShadow: 'var(--glow-gold)',
+    };
+  }
+  return { backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid var(--stage-border)' };
+}
 
 export default function PlayerLeaderboardClient({ sessionId }: Props) {
   const { participantId, nickname } = useParticipantStore((s) => ({
@@ -33,34 +51,32 @@ export default function PlayerLeaderboardClient({ sessionId }: Props) {
   const showTeamTab = isTeamMode;
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-      }}
-    >
+    <div className="stage min-h-screen flex flex-col">
       {/* 헤더 */}
       <div className="px-6 pt-8 pb-4 text-center">
-        <div className="text-4xl mb-3">🏆</div>
-        <h1 className="text-3xl font-bold text-white mb-1">최종 결과</h1>
-        <p style={{ color: 'rgba(255,255,255,0.6)' }}>{session?.quizTitle}</p>
+        <div className="text-4xl mb-3" aria-hidden>
+          🏆
+        </div>
+        <h1 className="text-3xl font-extrabold mb-1" style={{ color: 'var(--stage-text)' }}>
+          최종 결과
+        </h1>
+        <p style={{ color: 'var(--stage-muted)' }}>{session?.quizTitle}</p>
       </div>
 
       {/* 탭 (팀 모드일 때만) */}
       {showTeamTab && (
         <div
           className="flex mx-6 mb-4 rounded-full p-1"
-          style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+          style={{ backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid var(--stage-border)' }}
         >
           {(['individual', 'team'] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className="flex-1 py-2 rounded-full text-sm font-medium transition-all"
+              className="flex-1 py-2 rounded-full text-sm font-semibold transition-colors"
               style={{
-                backgroundColor:
-                  activeTab === tab ? 'var(--color-primary)' : 'transparent',
-                color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.6)',
+                backgroundColor: activeTab === tab ? 'var(--color-primary)' : 'transparent',
+                color: activeTab === tab ? '#fff' : 'var(--stage-muted)',
               }}
             >
               {tab === 'individual' ? '개인' : '팀'}
@@ -76,13 +92,9 @@ export default function PlayerLeaderboardClient({ sessionId }: Props) {
             entries={individualData?.entries ?? []}
             isLoading={loadingIndividual}
             myParticipantId={participantId}
-            myNickname={nickname}
           />
         ) : (
-          <TeamLeaderboard
-            entries={teamData?.entries ?? []}
-            isLoading={loadingTeam}
-          />
+          <TeamLeaderboard entries={teamData?.entries ?? []} isLoading={loadingTeam} />
         )}
       </div>
 
@@ -106,103 +118,71 @@ interface IndividualLeaderboardProps {
   entries: LeaderboardEntry[];
   isLoading: boolean;
   myParticipantId: string | null;
-  myNickname: string | null;
 }
 
-function IndividualLeaderboard({
-  entries,
-  isLoading,
-  myParticipantId,
-}: IndividualLeaderboardProps) {
+function IndividualLeaderboard({ entries, isLoading, myParticipantId }: IndividualLeaderboardProps) {
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <p style={{ color: 'rgba(255,255,255,0.5)' }}>로딩 중...</p>
-      </div>
-    );
+    return <CenterNote text="로딩 중…" />;
   }
-
   if (!entries.length) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <p style={{ color: 'rgba(255,255,255,0.5)' }}>순위 정보가 없습니다</p>
-      </div>
-    );
+    return <CenterNote text="순위 정보가 없습니다" />;
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <motion.div className="flex flex-col gap-2" variants={staggerChildren} initial="hidden" animate="show">
       {entries.map((entry) => {
         const isMe = entry.participantId === myParticipantId;
+        const isFirst = entry.rank === 1;
         const medal = MEDAL_EMOJI[entry.rank - 1];
 
         return (
-          <div
+          <motion.div
             key={entry.participantId}
-            className="flex items-center gap-4 px-4 py-4 rounded-2xl transition-all"
-            style={{
-              backgroundColor: isMe
-                ? 'rgba(255, 56, 92, 0.25)'
-                : 'rgba(255,255,255,0.07)',
-              border: isMe
-                ? '1px solid rgba(255,56,92,0.4)'
-                : '1px solid transparent',
-            }}
+            variants={fadeUp}
+            className="flex items-center gap-4 px-4 py-4 rounded-2xl"
+            style={rowStyle({ isMe, isFirst })}
           >
-            {/* 순위 */}
             <div className="w-10 text-center">
               {medal ? (
-                <span className="text-2xl">{medal}</span>
+                <span className="text-2xl" aria-hidden>
+                  {medal}
+                </span>
               ) : (
-                <span
-                  className="text-lg font-bold"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
-                >
+                <span className="text-lg font-bold tabular" style={{ color: 'var(--stage-muted)' }}>
                   {entry.rank}
                 </span>
               )}
             </div>
 
-            {/* 닉네임 */}
-            <div className="flex-1">
-              <p className="font-semibold text-white">
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate" style={{ color: 'var(--stage-text)' }}>
                 {entry.nickname}
                 {isMe && (
                   <span
                     className="ml-2 text-xs px-2 py-0.5 rounded-full font-medium"
-                    style={{
-                      backgroundColor: 'var(--color-primary)',
-                      color: '#fff',
-                    }}
+                    style={{ backgroundColor: 'var(--color-primary)', color: '#fff' }}
                   >
                     나
                   </span>
                 )}
               </p>
-              <p
-                className="text-xs mt-0.5"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
-              >
+              <p className="text-xs mt-0.5" style={{ color: 'var(--stage-muted)' }}>
                 정답 {entry.correctCount}개 · 평균 {entry.averageResponseTimeSec.toFixed(1)}초
               </p>
             </div>
 
-            {/* 점수 */}
             <div className="text-right">
-              <p className="text-white font-bold text-lg">
-                {entry.totalPoints.toLocaleString()}
+              <p className="font-bold text-lg tabular" style={{ color: isFirst ? 'var(--color-gold)' : 'var(--stage-text)' }}>
+                <CountUp value={entry.totalPoints} />
               </p>
-              <p
-                className="text-xs"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
-              >
+              <p className="text-xs" style={{ color: 'var(--stage-muted)' }}>
                 점
               </p>
             </div>
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }
 
@@ -210,82 +190,73 @@ function IndividualLeaderboard({
 // 팀 리더보드
 // ─────────────────────────────────────────────
 
-interface TeamLeaderboardProps {
-  entries: TeamLeaderboardEntry[];
-  isLoading: boolean;
-}
-
-function TeamLeaderboard({ entries, isLoading }: TeamLeaderboardProps) {
+function TeamLeaderboard({ entries, isLoading }: { entries: TeamLeaderboardEntry[]; isLoading: boolean }) {
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <p style={{ color: 'rgba(255,255,255,0.5)' }}>로딩 중...</p>
-      </div>
-    );
+    return <CenterNote text="로딩 중…" />;
   }
-
   if (!entries.length) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <p style={{ color: 'rgba(255,255,255,0.5)' }}>팀 순위 정보가 없습니다</p>
-      </div>
-    );
+    return <CenterNote text="팀 순위 정보가 없습니다" />;
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <motion.div className="flex flex-col gap-2" variants={staggerChildren} initial="hidden" animate="show">
       {entries.map((entry) => {
+        const isFirst = entry.rank === 1;
         const medal = MEDAL_EMOJI[entry.rank - 1];
         return (
-          <div
+          <motion.div
             key={entry.teamId}
+            variants={fadeUp}
             className="flex items-center gap-4 px-4 py-4 rounded-2xl"
-            style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
+            style={rowStyle({ isMe: false, isFirst })}
           >
             <div className="w-10 text-center">
               {medal ? (
-                <span className="text-2xl">{medal}</span>
+                <span className="text-2xl" aria-hidden>
+                  {medal}
+                </span>
               ) : (
-                <span
-                  className="text-lg font-bold"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
-                >
+                <span className="text-lg font-bold tabular" style={{ color: 'var(--stage-muted)' }}>
                   {entry.rank}
                 </span>
               )}
             </div>
 
-            <div className="flex-1">
-              <p className="font-semibold text-white">{entry.teamName}</p>
-              <p
-                className="text-xs mt-0.5"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
-              >
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate" style={{ color: 'var(--stage-text)' }}>
+                {entry.teamName}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--stage-muted)' }}>
                 {entry.memberCount}명
               </p>
             </div>
 
             <div className="text-right">
-              <p className="text-white font-bold text-lg">
-                {entry.totalPoints.toLocaleString()}
+              <p className="font-bold text-lg tabular" style={{ color: isFirst ? 'var(--color-gold)' : 'var(--stage-text)' }}>
+                <CountUp value={entry.totalPoints} />
               </p>
-              <p
-                className="text-xs"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
-              >
+              <p className="text-xs" style={{ color: 'var(--stage-muted)' }}>
                 점
               </p>
             </div>
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }
 
 // ─────────────────────────────────────────────
-// 나의 순위 배너 (하단 고정)
+// 보조 컴포넌트
 // ─────────────────────────────────────────────
+
+function CenterNote({ text }: { text: string }) {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <p style={{ color: 'var(--stage-muted)' }}>{text}</p>
+    </div>
+  );
+}
 
 interface MyRankBannerProps {
   entries: LeaderboardEntry[];
@@ -300,18 +271,15 @@ function MyRankBanner({ entries, participantId, nickname }: MyRankBannerProps) {
   return (
     <div
       className="sticky bottom-0 mx-4 mb-4 flex items-center gap-4 px-5 py-4 rounded-2xl"
-      style={{
-        backgroundColor: 'var(--color-primary)',
-        boxShadow: '0 -4px 20px rgba(255,56,92,0.3)',
-      }}
+      style={{ backgroundColor: 'var(--color-primary)', boxShadow: 'var(--glow-red)' }}
     >
       <div className="text-white/80 text-sm font-medium">내 순위</div>
-      <div className="flex-1">
-        <p className="font-bold text-white">{nickname ?? me.nickname}</p>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-white truncate">{nickname ?? me.nickname}</p>
       </div>
       <div className="text-right">
-        <p className="text-white font-bold text-xl">{me.rank}위</p>
-        <p className="text-white/70 text-xs">{me.totalPoints.toLocaleString()}점</p>
+        <p className="text-white font-bold text-xl tabular">{me.rank}위</p>
+        <p className="text-white/70 text-xs tabular">{me.totalPoints.toLocaleString()}점</p>
       </div>
     </div>
   );

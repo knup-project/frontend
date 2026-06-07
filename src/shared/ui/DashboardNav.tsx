@@ -22,17 +22,22 @@ export function DashboardNav() {
   ];
 
   return (
-    <header
-      className="bg-white border-b border-[#dddddd]"
-      style={{ height: '64px' }}
-    >
+    <header className="bg-canvas" style={{ height: 64, borderBottom: '1px solid var(--color-hairline)' }}>
       <div className="max-w-5xl mx-auto px-4 h-full flex items-center justify-between">
-        {/* 로고 */}
+        {/* 로고 — 크누피 */}
         <Link
           href="/dashboard/quizzes"
-          style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-primary)' }}
+          className="flex items-center gap-2"
+          style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.01em' }}
         >
-          KNU-P
+          <span
+            aria-hidden
+            className="inline-flex items-center justify-center"
+            style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--color-primary)', color: '#fff', fontSize: 14 }}
+          >
+            ?
+          </span>
+          크누피
         </Link>
 
         {/* 네비게이션 */}
@@ -44,11 +49,12 @@ export function DashboardNav() {
                 key={item.href}
                 href={item.href}
                 style={{
-                  fontSize: '16px',
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive ? '#222222' : '#6a6a6a',
-                  borderBottom: isActive ? '2px solid #222222' : 'none',
-                  paddingBottom: '2px',
+                  fontSize: 16,
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? 'var(--color-ink)' : 'var(--color-muted)',
+                  borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
+                  paddingBottom: 2,
+                  transition: 'color 150ms ease',
                 }}
               >
                 {item.label}
@@ -60,8 +66,8 @@ export function DashboardNav() {
         {/* 로그아웃 */}
         <button
           onClick={handleLogout}
-          style={{ fontSize: '14px', color: '#6a6a6a', fontWeight: 500 }}
-          className="hover:text-[#222222] transition-colors"
+          style={{ fontSize: 14, color: 'var(--color-muted)', fontWeight: 600 }}
+          className="hover:opacity-70 transition-opacity"
         >
           로그아웃
         </button>

@@ -44,16 +44,16 @@ export function NewSessionClient() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center min-h-screen bg-[#f7f7f7] p-4">
-      <div className="w-full max-w-md bg-white rounded-[14px] border border-[#dddddd] p-8">
-        <h1 style={{ fontSize: '22px', fontWeight: 600, color: '#222222' }} className="mb-6">
+    <div className="flex-1 flex items-center justify-center min-h-screen bg-surface-soft p-4">
+      <div className="w-full max-w-md bg-canvas rounded-md border border-hairline p-8">
+        <h1 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--color-ink)' }} className="mb-6">
           세션 만들기
         </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           {/* 퀴즈 선택 */}
           <div className="flex flex-col gap-1">
-            <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>
+            <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>
               퀴즈 선택 *
             </label>
             <select
@@ -74,7 +74,7 @@ export function NewSessionClient() {
 
           {/* 모드 선택 */}
           <div className="flex flex-col gap-2">
-            <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>
+            <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>
               진행 방식
             </label>
             <div className="flex gap-3">
@@ -86,9 +86,9 @@ export function NewSessionClient() {
                   style={{
                     flex: 1, height: '48px',
                     borderRadius: '8px', fontSize: '15px', fontWeight: 500,
-                    border: mode === m ? '2px solid var(--color-primary)' : '1px solid #dddddd',
-                    background: mode === m ? '#fff5f7' : 'white',
-                    color: mode === m ? 'var(--color-primary)' : '#222222',
+                    border: mode === m ? '2px solid var(--color-primary)' : '1px solid var(--color-hairline)',
+                    background: mode === m ? 'var(--color-primary-tint)' : 'white',
+                    color: mode === m ? 'var(--color-primary)' : 'var(--color-ink)',
                     cursor: 'pointer',
                   }}
                 >
@@ -101,7 +101,7 @@ export function NewSessionClient() {
           {/* 팀 수 (팀전일 때) */}
           {mode === 'TEAM' && (
             <div className="flex flex-col gap-1">
-              <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>팀 수</label>
+              <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>팀 수</label>
               <input
                 type="number"
                 min={2}
@@ -115,7 +115,7 @@ export function NewSessionClient() {
 
           {/* 최대 인원 */}
           <div className="flex flex-col gap-1">
-            <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>
+            <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>
               최대 참가자
             </label>
             <input
@@ -129,7 +129,7 @@ export function NewSessionClient() {
           </div>
 
           {errorMsg && (
-            <p style={{ fontSize: '14px', color: '#c13515' }}>{errorMsg}</p>
+            <p style={{ fontSize: '14px', color: 'var(--color-error)' }}>{errorMsg}</p>
           )}
 
           <button type="submit" disabled={isPending} className="btn-primary mt-2">

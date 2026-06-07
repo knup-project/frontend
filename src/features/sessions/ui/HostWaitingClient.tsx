@@ -1,10 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useSession, useStartSession } from '../hooks';
 import { useSessionSocket } from '../socket/hooks';
 import { getApiErrorMessage } from '@/shared/api/error';
-import { useState } from 'react';
+import { CountUp } from '@/shared/ui/CountUp';
 
 export function HostWaitingClient({ sessionId }: { sessionId: string }) {
   const router = useRouter();
@@ -38,7 +39,7 @@ export function HostWaitingClient({ sessionId }: { sessionId: string }) {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen">
-        <span style={{ color: '#6a6a6a' }}>세션 불러오는 중...</span>
+        <span style={{ color: 'var(--color-muted)' }}>세션 불러오는 중…</span>
       </div>
     );
   }
@@ -46,47 +47,52 @@ export function HostWaitingClient({ sessionId }: { sessionId: string }) {
   if (!session) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen">
-        <p style={{ color: '#c13515' }}>세션을 찾을 수 없습니다.</p>
+        <p style={{ color: 'var(--color-error)' }}>세션을 찾을 수 없습니다.</p>
       </div>
     );
   }
 
+  const canStart = !isPending && session.participantCount > 0;
+
   return (
-    <div className="flex-1 min-h-screen bg-[#222222] flex flex-col items-center justify-center gap-8 p-8">
+    <div className="stage flex-1 min-h-screen flex flex-col items-center justify-center gap-8 p-8">
       {/* 퀴즈 제목 */}
       <div className="text-center">
-        <p style={{ fontSize: '14px', color: '#929292', marginBottom: '8px' }}>
+        <p className="text-sm mb-2" style={{ color: 'var(--stage-muted)' }}>
           {session.quizTitle}
         </p>
-        <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'white' }}>
+        <h1 className="text-3xl font-extrabold" style={{ color: 'var(--stage-text)' }}>
           참가자를 기다리는 중
         </h1>
       </div>
 
-      {/* PIN 디스플레이 */}
+      {/* PIN 디스플레이 — RED 네온 */}
       <div
-        className="rounded-[14px] text-center"
-        style={{ background: 'var(--color-primary)', padding: '32px 48px' }}
+        className="text-center"
+        style={{ background: 'var(--color-primary)', boxShadow: 'var(--glow-red-neon)', borderRadius: 24, padding: '32px 56px' }}
       >
-        <p style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>
+        <p className="text-sm font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.85)' }}>
           참가 PIN
         </p>
-        <p style={{ fontSize: '64px', fontWeight: 700, color: 'white', letterSpacing: '8px', lineHeight: 1 }}>
+        <p className="tabular" style={{ fontSize: 64, fontWeight: 800, color: '#fff', letterSpacing: '0.12em', lineHeight: 1 }}>
           {session.pin}
         </p>
       </div>
 
       {/* 참가자 카운트 */}
       <div className="flex items-center gap-3">
-        <div
+        <span
           className="w-2 h-2 rounded-full"
-          style={{ background: connected ? '#22c55e' : '#929292' }}
+          style={{ background: connected ? 'var(--color-correct)' : 'var(--stage-muted)' }}
         />
-        <span style={{ fontSize: '20px', fontWeight: 600, color: 'white' }}>
-          {session.participantCount}명 참가 중
+        <span className="text-xl font-bold tabular" style={{ color: 'var(--stage-text)' }}>
+          <CountUp value={session.participantCount} />
+        </span>
+        <span className="text-xl font-bold" style={{ color: 'var(--stage-text)' }}>
+          명 참가 중
         </span>
         {session.maxParticipants && (
-          <span style={{ fontSize: '14px', color: '#929292' }}>
+          <span className="text-sm" style={{ color: 'var(--stage-muted)' }}>
             / 최대 {session.maxParticipants}명
           </span>
         )}
@@ -94,42 +100,38 @@ export function HostWaitingClient({ sessionId }: { sessionId: string }) {
 
       {/* 세션 정보 */}
       <div className="flex gap-4 text-center">
-        <div className="px-4 py-2 rounded-[8px]" style={{ background: 'rgba(255,255,255,0.1)' }}>
-          <p style={{ fontSize: '12px', color: '#929292' }}>방식</p>
-          <p style={{ fontSize: '14px', fontWeight: 600, color: 'white' }}>
+        <div className="stage-card px-5 py-3">
+          <p className="text-xs" style={{ color: 'var(--stage-muted)' }}>방식</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--stage-text)' }}>
             {session.mode === 'INDIVIDUAL' ? '개인전' : '팀전'}
           </p>
         </div>
-        <div className="px-4 py-2 rounded-[8px]" style={{ background: 'rgba(255,255,255,0.1)' }}>
-          <p style={{ fontSize: '12px', color: '#929292' }}>문제 수</p>
-          <p style={{ fontSize: '14px', fontWeight: 600, color: 'white' }}>
+        <div className="stage-card px-5 py-3">
+          <p className="text-xs" style={{ color: 'var(--stage-muted)' }}>문제 수</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--stage-text)' }}>
             {session.totalQuestions}개
           </p>
         </div>
       </div>
 
       {errorMsg && (
-        <p style={{ fontSize: '14px', color: 'var(--color-primary-disabled)' }}>{errorMsg}</p>
+        <p className="u-shake" style={{ fontSize: 14, color: 'var(--color-primary-disabled)' }}>
+          {errorMsg}
+        </p>
       )}
 
       {/* 시작 버튼 */}
       <button
         onClick={handleStart}
-        disabled={isPending || session.participantCount === 0}
-        style={{
-          height: '56px', padding: '0 48px',
-          background: isPending || session.participantCount === 0 ? 'var(--color-primary-disabled)' : 'white',
-          color: isPending || session.participantCount === 0 ? '#929292' : 'var(--color-primary)',
-          fontSize: '18px', fontWeight: 700,
-          borderRadius: '9999px', border: 'none',
-          cursor: isPending || session.participantCount === 0 ? 'not-allowed' : 'pointer',
-        }}
+        disabled={!canStart}
+        className="btn-primary"
+        style={{ height: 56, padding: '0 48px', fontSize: 18, fontWeight: 800, borderRadius: 9999 }}
       >
-        {isPending ? '시작 중...' : '퀴즈 시작!'}
+        {isPending ? '시작 중…' : '퀴즈 시작!'}
       </button>
 
       {session.participantCount === 0 && (
-        <p style={{ fontSize: '13px', color: '#929292' }}>
+        <p style={{ fontSize: 13, color: 'var(--stage-muted)' }}>
           참가자가 1명 이상 있어야 시작할 수 있습니다.
         </p>
       )}

@@ -33,19 +33,19 @@ export function SignupForm() {
       {/* 헤더 */}
       <div className="mb-8 text-center">
         <h1
-          style={{ fontSize: '22px', fontWeight: 600, color: '#222222', lineHeight: '1.18' }}
+          style={{ fontSize: '22px', fontWeight: 600, color: 'var(--color-ink)', lineHeight: '1.18' }}
           className="mb-2"
         >
           회원가입
         </h1>
-        <p style={{ fontSize: '14px', color: '#6a6a6a' }}>
+        <p style={{ fontSize: '14px', color: 'var(--color-muted)' }}>
           퀴즈 호스트 계정을 만들어보세요
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label htmlFor="nickname" style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>
+          <label htmlFor="nickname" style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>
             닉네임
           </label>
           <input
@@ -60,7 +60,7 @@ export function SignupForm() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="email" style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>
+          <label htmlFor="email" style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>
             이메일
           </label>
           <input
@@ -76,7 +76,7 @@ export function SignupForm() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="password" style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>
+          <label htmlFor="password" style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>
             비밀번호
           </label>
           <input
@@ -93,7 +93,7 @@ export function SignupForm() {
         </div>
 
         {errorMsg && (
-          <p style={{ fontSize: '14px', color: '#c13515' }} role="alert">
+          <p style={{ fontSize: '14px', color: 'var(--color-error)' }} role="alert">
             {errorMsg}
           </p>
         )}
@@ -103,7 +103,7 @@ export function SignupForm() {
         </button>
       </form>
 
-      <p className="mt-6 text-center" style={{ fontSize: '14px', color: '#6a6a6a' }}>
+      <p className="mt-6 text-center" style={{ fontSize: '14px', color: 'var(--color-muted)' }}>
         이미 계정이 있으신가요?{' '}
         <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 500 }} className="hover:underline">
           로그인

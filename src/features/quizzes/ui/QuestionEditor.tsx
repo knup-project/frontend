@@ -44,17 +44,17 @@ export function QuestionEditor({
   }
 
   return (
-    <div className="bg-white rounded-[14px] border border-[#dddddd] p-6 flex flex-col gap-4">
+    <div className="bg-canvas rounded-md border border-hairline p-6 flex flex-col gap-4">
       {/* 헤더: 문제 번호 + 삭제 */}
       <div className="flex items-center justify-between">
-        <span style={{ fontSize: '16px', fontWeight: 600, color: '#222222' }}>
+        <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-ink)' }}>
           문제 {index + 1}
         </span>
         {canRemove && (
           <button
             type="button"
             onClick={onRemove}
-            style={{ fontSize: '13px', color: '#c13515' }}
+            style={{ fontSize: '13px', color: 'var(--color-error)' }}
             className="hover:underline"
           >
             삭제
@@ -74,9 +74,9 @@ export function QuestionEditor({
               borderRadius: '9999px',
               fontSize: '13px',
               fontWeight: 500,
-              border: question.type === value ? 'none' : '1px solid #dddddd',
+              border: question.type === value ? 'none' : '1px solid var(--color-hairline)',
               background: question.type === value ? 'var(--color-primary)' : 'white',
-              color: question.type === value ? 'white' : '#6a6a6a',
+              color: question.type === value ? 'white' : 'var(--color-muted)',
               cursor: 'pointer',
             }}
           >
@@ -87,7 +87,7 @@ export function QuestionEditor({
 
       {/* 문제 내용 */}
       <div className="flex flex-col gap-1">
-        <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>문제 *</label>
+        <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>문제 *</label>
         <input
           required
           value={question.content}
@@ -100,7 +100,7 @@ export function QuestionEditor({
       {/* 보기 (객관식) */}
       {question.type === 'MULTIPLE_CHOICE' && (
         <div className="flex flex-col gap-2">
-          <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>보기</label>
+          <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>보기</label>
           {(question.options ?? []).map((opt, oi) => (
             <input
               key={oi}
@@ -120,7 +120,7 @@ export function QuestionEditor({
       {/* 제한 시간 / 점수 */}
       <div className="flex gap-4">
         <div className="flex flex-col gap-1 flex-1">
-          <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>
+          <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>
             제한 시간(초)
           </label>
           <input
@@ -133,7 +133,7 @@ export function QuestionEditor({
           />
         </div>
         <div className="flex flex-col gap-1 flex-1">
-          <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>점수</label>
+          <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>점수</label>
           <input
             type="number"
             min={0}
@@ -160,7 +160,7 @@ function AnswerInput({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label style={{ fontSize: '14px', fontWeight: 500, color: '#6a6a6a' }}>정답 *</label>
+      <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-muted)' }}>정답 *</label>
 
       {question.type === 'TRUE_FALSE' ? (
         <div className="flex gap-2">
@@ -175,9 +175,9 @@ function AnswerInput({
                 borderRadius: '8px',
                 fontSize: '20px',
                 fontWeight: 700,
-                border: question.answer === v ? 'none' : '1px solid #dddddd',
+                border: question.answer === v ? 'none' : '1px solid var(--color-hairline)',
                 background: question.answer === v ? 'var(--color-primary)' : 'white',
-                color: question.answer === v ? 'white' : '#222222',
+                color: question.answer === v ? 'white' : 'var(--color-ink)',
                 cursor: 'pointer',
               }}
             >

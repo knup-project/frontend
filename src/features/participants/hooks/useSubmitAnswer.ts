@@ -16,10 +16,8 @@ import type { AnswerSubmitRequest } from '@/shared/types/api';
  * mutate({ questionId: 1, answer: '1', responseTimeSec: 5 });
  */
 export function useSubmitAnswer() {
-  const { participantId, sessionId } = useParticipantStore((s) => ({
-    participantId: s.participantId,
-    sessionId: s.sessionId,
-  }));
+  const participantId = useParticipantStore((s) => s.participantId);
+  const sessionId = useParticipantStore((s) => s.sessionId);
 
   return useMutation({
     mutationFn: (request: AnswerSubmitRequest) => {

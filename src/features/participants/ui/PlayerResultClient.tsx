@@ -23,9 +23,7 @@ const CORRECT_STAGE =
 
 export default function PlayerResultClient({ sessionId }: Props) {
   const router = useRouter();
-  const { participantId } = useParticipantStore((s) => ({
-    participantId: s.participantId,
-  }));
+  const participantId = useParticipantStore((s) => s.participantId);
 
   // lazy initializer로 마운트 시 1회만 읽기 (effect 내 setState 회피)
   const [result] = useState<AnswerResultResponse | null>(() => {

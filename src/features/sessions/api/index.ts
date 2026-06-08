@@ -49,3 +49,11 @@ export async function endSession(sessionId: string): Promise<EndSessionResponse>
   );
   return data;
 }
+
+/** 참가자 강퇴 (호스트) */
+export async function deleteParticipant(
+  sessionId: string,
+  participantId: string,
+): Promise<void> {
+  await apiClient.delete(`/sessions/${sessionId}/participants/${participantId}`);
+}

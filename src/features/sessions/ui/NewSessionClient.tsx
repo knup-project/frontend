@@ -37,7 +37,7 @@ export function NewSessionClient() {
       },
       {
         onSuccess: (session) =>
-          router.push(`/host/sessions/${session.id}/waiting`),
+          router.push(`/host/sessions/${session.sessionId}/waiting`),
         onError: (err) => setErrorMsg(getApiErrorMessage(err)),
       },
     );

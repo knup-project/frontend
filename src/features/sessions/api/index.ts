@@ -57,3 +57,11 @@ export async function deleteParticipant(
 ): Promise<void> {
   await apiClient.delete(`/sessions/${sessionId}/participants/${participantId}`);
 }
+
+/** 참가자 일괄/전체 강퇴 (호스트) — participantIds 가 비어 있으면 전체 */
+export async function kickParticipants(
+  sessionId: string,
+  participantIds: string[],
+): Promise<void> {
+  await apiClient.post(`/sessions/${sessionId}/participants/kick`, { participantIds });
+}

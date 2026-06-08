@@ -99,6 +99,25 @@ export default function PlayerWaitingClient({ sessionId }: Props) {
           {connected ? '🟢 연결됨' : '⚪ 연결 중…'}
         </div>
       </div>
+
+      {/* 라운지 — 입장한 참가자 (내 닉네임 강조) */}
+      {session?.participants && session.participants.length > 0 && (
+        <div className="flex flex-wrap gap-2 justify-center max-w-md">
+          {session.participants.map((p) => (
+            <span
+              key={p.participantId}
+              className="stage-chip"
+              style={
+                p.participantId === participantId
+                  ? { borderColor: 'var(--color-primary)', color: '#fff', background: 'rgba(230,0,0,0.18)' }
+                  : undefined
+              }
+            >
+              {p.nickname}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

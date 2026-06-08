@@ -35,6 +35,7 @@ function rowStyle({ isMe, isFirst }: { isMe: boolean; isFirst: boolean }): React
 export default function PlayerLeaderboardClient({ sessionId }: Props) {
   const participantId = useParticipantStore((s) => s.participantId);
   const nickname = useParticipantStore((s) => s.nickname);
+  const myTeamId = useParticipantStore((s) => s.teamId);
 
   const { data: session } = useSession(sessionId);
   const isTeamMode = session?.mode === 'TEAM';
@@ -92,7 +93,7 @@ export default function PlayerLeaderboardClient({ sessionId }: Props) {
             myParticipantId={participantId}
           />
         ) : (
-          <TeamLeaderboard entries={teamData?.entries ?? []} isLoading={loadingTeam} />
+          <TeamLeaderboard entries={teamData?.entries ?? []} isLoading={loadingTeam} myTeamId={myTeamId} />
         )}
       </div>
 
@@ -188,7 +189,15 @@ function IndividualLeaderboard({ entries, isLoading, myParticipantId }: Individu
 // 팀 리더보드
 // ─────────────────────────────────────────────
 
-function TeamLeaderboard({ entries, isLoading }: { entries: TeamLeaderboardEntry[]; isLoading: boolean }) {
+function TeamLeaderboard({
+  entries,
+  isLoading,
+  myTeamId,
+}: {
+  entries: TeamLeaderboardEntry[];
+  isLoading: boolean;
+  myTeamId: string | null;
+}) {
   if (isLoading) {
     return <CenterNote text="로딩 중…" />;
   }
@@ -200,13 +209,14 @@ function TeamLeaderboard({ entries, isLoading }: { entries: TeamLeaderboardEntry
     <motion.div className="flex flex-col gap-2" variants={staggerChildren} initial="hidden" animate="show">
       {entries.map((entry) => {
         const isFirst = entry.rank === 1;
+        const isMine = myTeamId != null && entry.teamId === myTeamId;
         const medal = MEDAL_EMOJI[entry.rank - 1];
         return (
           <motion.div
             key={entry.teamId}
             variants={fadeUp}
             className="flex items-center gap-4 px-4 py-4 rounded-2xl"
-            style={rowStyle({ isMe: false, isFirst })}
+            style={rowStyle({ isMe: isMine, isFirst })}
           >
             <div className="w-10 text-center">
               {medal ? (

@@ -108,8 +108,14 @@ export interface SessionCreateRequest {
   maxParticipants?: number;
 }
 
+export interface SessionParticipant {
+  participantId: string;
+  nickname: string;
+  teamId?: string;
+}
+
 export interface SessionResponse {
-  id: string;
+  sessionId: string;
   pin: string;
   quizId: number;
   quizTitle: string;
@@ -119,6 +125,7 @@ export interface SessionResponse {
   totalQuestions: number;
   maxParticipants?: number;
   participantCount: number;
+  participants: SessionParticipant[];
   createdAt: string;
 }
 

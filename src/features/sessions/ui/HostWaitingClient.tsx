@@ -6,7 +6,7 @@ import { useSession, useStartSession, useKickParticipant } from '../hooks';
 import { useSessionSocket } from '../socket/hooks';
 import { getApiErrorMessage } from '@/shared/api/error';
 import { CountUp } from '@/shared/ui/CountUp';
-import type { SessionParticipantsEvent } from '@/shared/types/api';
+import type { SessionParticipant } from '@/shared/types/api';
 
 export function HostWaitingClient({ sessionId }: { sessionId: string }) {
   const router = useRouter();
@@ -14,13 +14,18 @@ export function HostWaitingClient({ sessionId }: { sessionId: string }) {
   const { mutate: startSession, isPending } = useStartSession();
   const { mutate: kick, isPending: kicking } = useKickParticipant(sessionId);
   const [errorMsg, setErrorMsg] = useState('');
-  const [participants, setParticipants] = useState<SessionParticipantsEvent['participants']>([]);
 
-  // WebSocket — 참가자 입·퇴장 실시간 목록
+  // WS 로 받은 실시간 목록. 한 번이라도 수신하면 그 값을 신뢰(강퇴로 0명이 돼도 유지).
+  const [wsParticipants, setWsParticipants] = useState<SessionParticipant[]>([]);
+  const [wsReceived, setWsReceived] = useState(false);
+
   const { connected } = useSessionSocket({
     sessionId,
     enabled: !!session,
-    onParticipants: (e) => setParticipants(e.participants),
+    onParticipants: (e) => {
+      setWsParticipants(e.participants);
+      setWsReceived(true);
+    },
     onStatus: (e) => {
       if (e.status === 'IN_PROGRESS') {
         router.push(`/host/sessions/${sessionId}/play`);
@@ -52,8 +57,9 @@ export function HostWaitingClient({ sessionId }: { sessionId: string }) {
     );
   }
 
-  // 실시간 인원: WS 목록이 있으면 그 길이, 없으면 폴링 카운트
-  const liveCount = participants.length > 0 ? participants.length : session.participantCount;
+  // WS 수신 전에는 세션 조회의 초기 스냅샷을 사용
+  const participants = wsReceived ? wsParticipants : session.participants;
+  const liveCount = participants.length;
   const canStart = !isPending && liveCount > 0;
 
   return (

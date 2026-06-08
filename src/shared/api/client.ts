@@ -46,6 +46,17 @@ function isLeaderboardUrl(url: string | undefined): boolean {
 }
 
 /**
+ * GET /sessions/{id} : 세션 상태 조회 — 참가자(미로그인)도 호출한다.
+ * 401 이어도 /login 으로 보내지 않는다(참가자에겐 로그인 페이지가 무의미).
+ * join·하위 경로(/start, /answer 등)는 제외.
+ */
+function isSessionDetailUrl(url: string | undefined, method: string | undefined): boolean {
+  if (!url) return false;
+  if (method && method.toLowerCase() !== 'get') return false;
+  return /\/sessions\/[^/]+$/.test(url) && !url.includes('/sessions/join');
+}
+
+/**
  * 세션 복원(hydration) 조회 URL
  *
  * 401 이면 "로그아웃 상태"를 의미하므로 store 만 비우고
@@ -89,7 +100,10 @@ apiClient.interceptors.response.use(
 
       // 공개·리더보드·answer 요청은 세션 인증 대상이 아니므로 그대로 전달
       const isAuthenticatedRequest =
-        !isPublicUrl(url) && !isLeaderboardUrl(url) && !isAnswerUrl(url);
+        !isPublicUrl(url) &&
+        !isLeaderboardUrl(url) &&
+        !isAnswerUrl(url) &&
+        !isSessionDetailUrl(url, error.config?.method);
 
       if (isAuthenticatedRequest) {
         useAuthStore.getState().clear();

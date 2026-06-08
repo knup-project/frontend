@@ -33,10 +33,8 @@ function rowStyle({ isMe, isFirst }: { isMe: boolean; isFirst: boolean }): React
 }
 
 export default function PlayerLeaderboardClient({ sessionId }: Props) {
-  const { participantId, nickname } = useParticipantStore((s) => ({
-    participantId: s.participantId,
-    nickname: s.nickname,
-  }));
+  const participantId = useParticipantStore((s) => s.participantId);
+  const nickname = useParticipantStore((s) => s.nickname);
 
   const { data: session } = useSession(sessionId);
   const isTeamMode = session?.mode === 'TEAM';

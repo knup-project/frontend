@@ -15,10 +15,8 @@ interface Props {
 
 export default function PlayerWaitingClient({ sessionId }: Props) {
   const router = useRouter();
-  const { participantId, nickname } = useParticipantStore((s) => ({
-    participantId: s.participantId,
-    nickname: s.nickname,
-  }));
+  const participantId = useParticipantStore((s) => s.participantId);
+  const nickname = useParticipantStore((s) => s.nickname);
 
   const { data: session } = useSession(sessionId);
 

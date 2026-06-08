@@ -39,9 +39,7 @@ interface Props {
 
 export default function PlayerQuestionClient({ sessionId }: Props) {
   const router = useRouter();
-  const { participantId } = useParticipantStore((s) => ({
-    participantId: s.participantId,
-  }));
+  const participantId = useParticipantStore((s) => s.participantId);
 
   const [phase, setPhase] = useState<Phase>('waiting');
   const [activeQuestion, setActiveQuestion] = useState<ActiveQuestion | null>(null);

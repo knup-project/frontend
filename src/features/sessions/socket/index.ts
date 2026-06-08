@@ -30,6 +30,18 @@ import type {
 } from '@/shared/types/api';
 
 // ─────────────────────────────────────────────
+// SockJS URL 정규화
+// ─────────────────────────────────────────────
+
+/**
+ * SockJS 생성자는 http(s) 베이스 URL 을 받는다.
+ * 주입된 wss://(또는 ws://)를 https://(http://)로 변환한다.
+ */
+function toSockJsUrl(url: string): string {
+  return url.replace(/^wss:/i, 'https:').replace(/^ws:/i, 'http:');
+}
+
+// ─────────────────────────────────────────────
 // 구독 토픽 생성 헬퍼
 // ─────────────────────────────────────────────
 
@@ -94,7 +106,7 @@ export function createSessionStompClient(options: {
 
   const client = new Client({
     // SockJS fallback: WebSocket 미지원 환경에서 long-polling 등으로 대체
-    webSocketFactory: () => new SockJS(ENV.WS_URL),
+    webSocketFactory: () => new SockJS(toSockJsUrl(ENV.WS_URL)),
 
     // 재연결 딜레이 (ms)
     reconnectDelay: 5_000,

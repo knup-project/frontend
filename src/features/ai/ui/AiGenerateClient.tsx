@@ -37,6 +37,10 @@ export function AiGenerateClient() {
       );
     } else {
       if (!file) return;
+      if (file.size > 15 * 1024 * 1024) {
+        setErrorMsg('PDF 파일이 너무 큽니다. 15MB 이하의 파일을 올려 주세요.');
+        return;
+      }
       fromPdf(
         { file, questionCount, questionType, difficulty },
         { onError: (err) => setErrorMsg(getApiErrorMessage(err)) },

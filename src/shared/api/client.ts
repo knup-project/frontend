@@ -73,7 +73,9 @@ function isMeUrl(url: string | undefined): boolean {
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: ENV.API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
+  // Content-Type 을 인스턴스 기본값으로 고정하면 axios 가 FormData 요청까지
+  // JSON 으로 직렬화해 버린다(PDF 업로드 500 의 원인). axios 는 객체 본문이면
+  // application/json, FormData 면 multipart 를 요청별로 알아서 설정한다.
   timeout: 10_000,
   // 세션 쿠키(JSESSIONID)를 모든 요청에 자동 첨부
   withCredentials: true,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { useParticipantStore } from '../store';
@@ -8,6 +8,7 @@ import { useSubmitAnswer } from '../hooks';
 import { useQuestionTimer } from '../hooks/useQuestionTimer';
 import { storeResult } from '../lib/resultStorage';
 import { QuestionOptions } from './QuestionOptions';
+import { useSession } from '@/features/sessions/hooks';
 import { useSessionSocket } from '@/features/sessions/socket/hooks';
 import { CountdownRing } from '@/shared/ui/CountdownRing';
 import { Knupy } from '@/shared/ui/Knupy';
@@ -48,6 +49,13 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
   const [timeLeft, setTimeLeft] = useState(0);
 
   const { mutate: submitAnswer, isPending: isSubmitting } = useSubmitAnswer();
+  const { data: session } = useSession(sessionId);
+
+  // 콜백/이펙트에서 최신 activeQuestion 참조 (중복 이벤트 가드용)
+  const activeQuestionRef = useRef<ActiveQuestion | null>(null);
+  useEffect(() => {
+    activeQuestionRef.current = activeQuestion;
+  });
 
   // ── 카운트다운 타이머 (훅으로 분리) ───────────
 
@@ -62,6 +70,9 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
   // ── WebSocket 콜백 ─────────────────────────
 
   const handleQuestion = useCallback((event: SessionQuestionEvent) => {
+    // 같은 문제의 중복 수신(재브로드캐스트/복구 직후 WS 도착)이면 타이머를 리셋하지 않는다
+    if (activeQuestionRef.current?.event.question.id === event.question.id) return;
+
     const startedAt = Date.now();
     const initialTime = Math.max(event.question.timeLimit, 0);
 
@@ -89,6 +100,44 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
     onStatus: handleStatus,
   });
 
+  // ── 폴백: WS question 이벤트를 놓쳤을 때 세션 스냅샷으로 복구 ──
+  // 페이지 전환 직후 구독 공백에 문제가 송출되면 WS 만으로는 영영 못 받는다.
+  // 세션 폴링(useSession)이 currentQuestion 을 주면 남은 시간과 함께 복구한다.
+  useEffect(() => {
+    const cq = session?.currentQuestion;
+    if (!cq || session.status !== 'IN_PROGRESS') return;
+    if (activeQuestionRef.current?.event.question.id === cq.id) return;
+
+    const remaining = Math.max(
+      0,
+      Math.min(cq.timeLimit, session.questionRemainingSec ?? cq.timeLimit),
+    );
+    if (remaining <= 0) return; // 이미 시간이 끝난 문제는 복구하지 않음
+
+    setActiveQuestion({
+      event: {
+        sessionId,
+        questionIndex: session.currentQuestionIndex,
+        totalQuestions: session.totalQuestions,
+        question: cq,
+        startedAt: '',
+      },
+      // 경과분을 반영해 responseTimeSec 계산이 맞도록 시작 시각을 보정
+      startedAt: Date.now() - (cq.timeLimit - remaining) * 1000,
+    });
+    setTimeLeft(remaining);
+    setSelectedAnswer(null);
+    setShortAnswer('');
+    setPhase('question');
+  }, [session, sessionId]);
+
+  // ── 폴백: WS status 이벤트를 놓쳐도 폴링으로 종료 감지 ──
+  useEffect(() => {
+    if (session?.status === 'FINISHED') {
+      router.push(`/play/${sessionId}/leaderboard`);
+    }
+  }, [session?.status, router, sessionId]);
+
   // ── 답변 제출 ──────────────────────────────
 
   function submitWithAnswer(answer: string) {
@@ -107,7 +156,7 @@ export default function PlayerQuestionClient({ sessionId }: Props) {
       },
       {
         onSuccess: (result: AnswerResultResponse) => {
-          storeResult(result);
+          storeResult(result, activeQuestion.event.question.id);
           router.push(`/play/${sessionId}/result`);
         },
         onError: () => {
@@ -241,7 +290,7 @@ function SubmittedScreen({ selectedAnswer }: { selectedAnswer: string | null }) 
           </p>
         )}
         <p style={{ color: 'var(--stage-muted)' }} className="mt-2">
-          결과를 불러오는 중…
+          {selectedAnswer ? '결과를 불러오는 중…' : '다음 문제를 기다리는 중…'}
         </p>
       </motion.div>
     </div>

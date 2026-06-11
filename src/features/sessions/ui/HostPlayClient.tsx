@@ -17,14 +17,14 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
   const { mutate: endSession, isPending: isEnding } = useEndSession();
   const { data: leaderboard } = useLeaderboard(sessionId, 5);
 
-  const [currentQuestion, setCurrentQuestion] = useState<SessionQuestionEvent | null>(null);
+  const [wsQuestion, setWsQuestion] = useState<SessionQuestionEvent | null>(null);
   const [result, setResult] = useState<SessionResultEvent | null>(null);
   const [answeredCount, setAnsweredCount] = useState(0);
 
   const { connected } = useSessionSocket({
     sessionId,
     onQuestion: (e) => {
-      setCurrentQuestion(e);
+      setWsQuestion(e);
       setResult(null);
       setAnsweredCount(0);
     },
@@ -42,9 +42,32 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
     },
   });
 
+  // WS question 이벤트를 놓친 경우(새로고침/구독 공백) 세션 조회의
+  // currentQuestion 스냅샷으로 복구한다. 둘 다 있으면 더 나중 문제를 보여 준다.
+  const recoveredQuestion: SessionQuestionEvent | null =
+    session?.currentQuestion && session.status === 'IN_PROGRESS'
+      ? {
+          sessionId,
+          questionIndex: session.currentQuestionIndex,
+          totalQuestions: session.totalQuestions,
+          question: session.currentQuestion,
+          startedAt: '',
+        }
+      : null;
+  const currentQuestion =
+    wsQuestion && recoveredQuestion
+      ? (wsQuestion.questionIndex >= recoveredQuestion.questionIndex ? wsQuestion : recoveredQuestion)
+      : (wsQuestion ?? recoveredQuestion);
+
+  // 마지막 문제 판정은 "실제로 송출된 문제" 기준이어야 한다.
+  // 세션 스냅샷의 currentQuestionIndex 는 송출 전에도 0 이라, 1문제짜리
+  // 퀴즈에서 첫 문제를 내보내기도 전에 '퀴즈 종료'가 되어 버린다.
+  const isLast =
+    currentQuestion !== null &&
+    currentQuestion.questionIndex + 1 >= currentQuestion.totalQuestions;
+
   const handleNext = () => {
     if (!session) return;
-    const isLast = session.currentQuestionIndex + 1 >= session.totalQuestions;
 
     if (isLast) {
       endSession(sessionId, {
@@ -56,8 +79,9 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
   };
 
   const totalQ = session?.totalQuestions ?? 0;
-  const currentIdx = session?.currentQuestionIndex ?? 0;
-  const progress = totalQ > 0 ? ((currentIdx + 1) / totalQ) * 100 : 0;
+  const currentIdx = currentQuestion?.questionIndex ?? session?.currentQuestionIndex ?? 0;
+  const served = currentQuestion !== null;
+  const progress = totalQ > 0 && served ? ((currentIdx + 1) / totalQ) * 100 : 0;
 
   return (
     <div className="stage min-h-screen flex flex-col">
@@ -73,7 +97,7 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
           </span>
         </div>
         <span className="tabular text-sm" style={{ color: 'var(--stage-muted)' }}>
-          문제 {currentIdx + 1} / {totalQ}
+          문제 {served ? currentIdx + 1 : '-'} / {totalQ}
         </span>
       </div>
 
@@ -169,11 +193,11 @@ export function HostPlayClient({ sessionId }: { sessionId: string }) {
           >
             {isMoving || isEnding
               ? '처리 중…'
-              : currentIdx + 1 >= totalQ
-                ? '퀴즈 종료'
-                : currentQuestion
-                  ? '다음 문제 →'
-                  : '첫 문제 시작'}
+              : !currentQuestion
+                ? '첫 문제 시작'
+                : isLast
+                  ? '퀴즈 종료'
+                  : '다음 문제 →'}
           </button>
         </div>
 

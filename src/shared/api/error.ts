@@ -19,6 +19,7 @@ const ERROR_CODE_MESSAGES: Record<string, string> = {
   SESSION_ALREADY_STARTED: '이미 시작된 세션입니다.',
   AI_RATE_LIMITED: 'AI 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
   AI_SERVICE_ERROR: 'AI 서비스에 일시적인 오류가 발생했습니다.',
+  PDF_TOO_LARGE: 'PDF 파일이 너무 큽니다. 15MB 이하의 파일을 올려 주세요.',
 };
 
 // ─────────────────────────────────────────────
@@ -35,6 +36,21 @@ export function isApiError(error: unknown): error is ErrorResponse {
     'timestamp' in error &&
     'path' in error
   );
+}
+
+// ─────────────────────────────────────────────
+// 에러 코드 추출
+// ─────────────────────────────────────────────
+
+/** 서버 ErrorResponse 의 code 를 꺼냅니다 (없으면 null) */
+export function getApiErrorCode(error: unknown): string | null {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const axiosError = error as { response?: { data?: unknown } };
+    const data = axiosError.response?.data;
+    if (isApiError(data)) return data.code;
+  }
+  if (isApiError(error)) return error.code;
+  return null;
 }
 
 // ─────────────────────────────────────────────

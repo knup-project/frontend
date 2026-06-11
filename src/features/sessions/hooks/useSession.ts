@@ -10,6 +10,8 @@ import type { SessionStatus } from '@/shared/types/api';
  *
  * - sessionId 없으면 비활성화
  * - WAITING 상태일 때 3초 폴링 (참가자 수 갱신)
+ * - IN_PROGRESS 상태일 때 5초 폴링 — WS question/status 이벤트를 놓쳐도
+ *   currentQuestion / status 로 복구할 수 있는 폴백
  * - isWaiting / isInProgress / isFinished 파생값 반환
  *
  * @example
@@ -20,8 +22,10 @@ export function useSession(sessionId: string | null | undefined) {
     queryKey: sessionKeys.detail(sessionId!),
     queryFn: () => getSession(sessionId!),
     enabled: !!sessionId,
+    refetchOnMount: 'always',
     refetchInterval: (query) => {
       if (query.state.data?.status === 'WAITING') return 3_000;
+      if (query.state.data?.status === 'IN_PROGRESS') return 5_000;
       return false;
     },
   });

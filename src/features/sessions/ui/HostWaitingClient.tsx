@@ -10,7 +10,7 @@ import {
   useKickParticipants,
 } from '../hooks';
 import { useSessionSocket } from '../socket/hooks';
-import { getApiErrorMessage } from '@/shared/api/error';
+import { getApiErrorCode, getApiErrorMessage } from '@/shared/api/error';
 import { CountUp } from '@/shared/ui/CountUp';
 import type { SessionParticipant } from '@/shared/types/api';
 
@@ -46,7 +46,18 @@ export function HostWaitingClient({ sessionId }: { sessionId: string }) {
     setErrorMsg('');
     startSession(sessionId, {
       onSuccess: () => router.push(`/host/sessions/${sessionId}/play`),
-      onError: (err) => setErrorMsg(getApiErrorMessage(err)),
+      onError: (err) => {
+        // 이미 시작/종료된 세션이면 에러 대신 현재 상태에 맞는 화면으로 보낸다
+        if (getApiErrorCode(err) === 'SESSION_ALREADY_STARTED') {
+          if (session?.status === 'FINISHED') {
+            router.push(`/host/sessions/${sessionId}/result`);
+          } else {
+            router.push(`/host/sessions/${sessionId}/play`);
+          }
+          return;
+        }
+        setErrorMsg(getApiErrorMessage(err));
+      },
     });
   };
 

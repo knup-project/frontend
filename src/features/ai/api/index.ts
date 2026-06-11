@@ -23,6 +23,10 @@ export interface GenerateQuizFromPdfParams {
 // API 함수
 // ─────────────────────────────────────────────
 
+// Gemini 호출은 전역 타임아웃(10s)보다 오래 걸릴 수 있어 요청별로 늘린다.
+const TEXT_GENERATE_TIMEOUT_MS = 60_000;
+const PDF_GENERATE_TIMEOUT_MS = 120_000;
+
 /**
  * 텍스트 기반 AI 퀴즈 생성
  */
@@ -32,6 +36,7 @@ export async function generateQuizFromText(
   const { data } = await apiClient.post<AIQuizGenerateResponse>(
     '/ai/quiz/generate',
     request,
+    { timeout: TEXT_GENERATE_TIMEOUT_MS },
   );
   return data;
 }
@@ -59,7 +64,8 @@ export async function generateQuizFromPdf(
   const { data } = await apiClient.post<AIQuizGenerateResponse>(
     '/ai/quiz/generate/pdf',
     formData,
-    // axios 가 FormData 를 감지하면 Content-Type 을 자동으로 multipart/form-data 로 설정
+    // FormData 는 브라우저가 multipart boundary 포함 Content-Type 을 설정한다
+    { timeout: PDF_GENERATE_TIMEOUT_MS },
   );
   return data;
 }
@@ -73,6 +79,7 @@ export async function generateExplanation(
   const { data } = await apiClient.post<AIExplainResponse>(
     '/ai/explain',
     request,
+    { timeout: TEXT_GENERATE_TIMEOUT_MS },
   );
   return data;
 }

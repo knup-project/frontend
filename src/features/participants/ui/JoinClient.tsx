@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { useJoinSession } from '../hooks';
+import { getApiErrorMessage } from '@/shared/api/error';
 import { transitions } from '@/shared/lib/motion';
 import { Knupy } from '@/shared/ui/Knupy';
 
@@ -14,8 +15,7 @@ export default function JoinClient() {
   const [pin, setPin] = useState('');
   const [nickname, setNickname] = useState('');
 
-  const errorMessage =
-    error instanceof Error ? error.message : error ? '참가에 실패했습니다.' : null;
+  const errorMessage = error ? getApiErrorMessage(error) : null;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

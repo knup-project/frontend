@@ -1,16 +1,17 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { useParticipantStore } from '../store';
-import { readStoredResult, clearStoredResult } from '../lib/resultStorage';
+import { readStoredResult, clearStoredResult, type StoredResult } from '../lib/resultStorage';
+import { useSession } from '@/features/sessions/hooks';
 import { useSessionSocket } from '@/features/sessions/socket/hooks';
 import { CountUp } from '@/shared/ui/CountUp';
 import { Celebration } from '@/shared/ui/Celebration';
 import { transitions } from '@/shared/lib/motion';
 import { Knupy } from '@/shared/ui/Knupy';
-import type { AnswerResultResponse, SessionQuestionEvent, SessionStatusEvent } from '@/shared/types/api';
+import type { SessionQuestionEvent, SessionStatusEvent } from '@/shared/types/api';
 
 interface Props {
   sessionId: string;
@@ -26,11 +27,14 @@ export default function PlayerResultClient({ sessionId }: Props) {
   const participantId = useParticipantStore((s) => s.participantId);
 
   // lazy initializer로 마운트 시 1회만 읽기 (effect 내 setState 회피)
-  const [result] = useState<AnswerResultResponse | null>(() => {
-    const stored = readStoredResult();
+  const [stored] = useState<StoredResult | null>(() => {
+    const value = readStoredResult();
     clearStoredResult();
-    return stored;
+    return value;
   });
+  const result = stored?.result ?? null;
+
+  const { data: session } = useSession(sessionId);
 
   // WebSocket: 다음 문제 또는 세션 종료 수신
   const handleQuestion = useCallback(
@@ -56,6 +60,21 @@ export default function PlayerResultClient({ sessionId }: Props) {
     onQuestion: handleQuestion,
     onStatus: handleStatus,
   });
+
+  // 폴백: WS 이벤트를 놓쳐도 세션 폴링으로 다음 문제/종료를 감지한다.
+  useEffect(() => {
+    if (!session) return;
+    if (session.status === 'FINISHED') {
+      router.push(`/play/${sessionId}/leaderboard`);
+      return;
+    }
+    const cq = session.currentQuestion;
+    const remaining = session.questionRemainingSec ?? 0;
+    // 내가 답한 문제와 다른 문제가 아직 시간 안에 진행 중이면 문제 화면으로
+    if (cq && cq.id !== stored?.questionId && remaining > 0) {
+      router.push(`/play/${sessionId}/question`);
+    }
+  }, [session, stored?.questionId, router, sessionId]);
 
   if (!result) {
     return (

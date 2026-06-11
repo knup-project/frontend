@@ -38,10 +38,11 @@ export function QuizForm({ defaultValues, onSubmit, isPending, submitLabel = '�
   const [title, setTitle] = useState(defaultValues?.title ?? '');
   const [description, setDescription] = useState(defaultValues?.description ?? '');
 
-  const uidRef = useRef(0);
   const [items, setItems] = useState<Item[]>(() =>
-    (defaultValues?.questions ?? [EMPTY_QUESTION()]).map((q) => ({ uid: `q${uidRef.current++}`, q })),
+    (defaultValues?.questions ?? [EMPTY_QUESTION()]).map((q, i) => ({ uid: `q${i}`, q })),
   );
+  // 다음 uid 카운터 — 초기 항목 수에서 시작 (이벤트 핸들러에서만 증가)
+  const uidRef = useRef(items.length);
   // 한 번에 하나만 펼침. 처음엔 첫 문제를 펼쳐 둔다.
   const [openUid, setOpenUid] = useState<string | null>(() => items[0]?.uid ?? null);
 

@@ -114,6 +114,16 @@ export interface SessionParticipant {
   teamId?: string;
 }
 
+/** 진행 중(송출된) 문제 스냅샷 — WS 이벤트를 놓쳤을 때 REST 복구용 (정답 미포함) */
+export interface CurrentQuestion {
+  id: number;
+  content: string;
+  type: QuestionType;
+  options?: string[];
+  timeLimit: number;
+  points: number;
+}
+
 export interface SessionResponse {
   sessionId: string;
   pin: string;
@@ -126,6 +136,10 @@ export interface SessionResponse {
   maxParticipants?: number;
   participantCount: number;
   participants: SessionParticipant[];
+  /** IN_PROGRESS 이고 문제가 송출된 상태일 때만 존재 */
+  currentQuestion?: CurrentQuestion | null;
+  /** 현재 문제의 서버 계산 남은 시간(초) */
+  questionRemainingSec?: number | null;
   createdAt: string;
 }
 
